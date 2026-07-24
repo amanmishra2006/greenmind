@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GreenMind</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/">🌿 GreenMind</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            {% if session.username %}
+                <a href="/upload">Upload</a>
+                <a href="/history">History</a>
+                <span class="nav-user">Hi, {{ session.username }}</span>
+                <a href="/logout">Logout</a>
+            {% else %}
+                <a href="/login">Login</a>
+                <a href="/register">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="page-content">
+        {% block content %}{% endblock %}
+    </div>
+
+</body>
+</html>

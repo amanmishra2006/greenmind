@@ -1,0 +1,147 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #eafaf1, #d4f1e0);
+    margin: 0;
+    min-height: 100vh;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1b5e20;
+    padding: 16px 40px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.nav-links a, .nav-user {
+    margin-left: 22px;
+    color: #d9f2df;
+    font-size: 15px;
+    font-weight: normal;
+}
+
+.nav-links a:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+.page-content {
+    padding-top: 60px;
+    padding-bottom: 60px;
+}
+
+/* Container / Card */
+.container {
+    background: white;
+    max-width: 480px;
+    margin: auto;
+    padding: 45px 40px;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+h1 {
+    color: #1b5e20;
+    margin-bottom: 5px;
+}
+
+h2 {
+    color: #2e7d32;
+    font-size: 22px;
+}
+
+h3 {
+    color: #1b5e20;
+    margin-top: 25px;
+    margin-bottom: 8px;
+}
+
+p {
+    color: #444;
+    line-height: 1.5;
+}
+
+/* Form inputs */
+input[type="text"], input[type="password"], input[type="file"] {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    border: 1px solid #cde5d4;
+    border-radius: 8px;
+    font-size: 15px;
+    background-color: #f7fcf9;
+}
+
+input:focus {
+    outline: none;
+    border-color: #2e7d32;
+}
+
+/* Button */
+.btn {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 13px 30px;
+    background-color: #2e7d32;
+    color: white;
+    text-decoration: none;
+    border: none;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.btn:hover {
+    background-color: #1b5e20;
+    transform: translateY(-2px);
+}
+
+/* Result image */
+img {
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+/* History cards */
+.history-item {
+    text-align: left;
+    max-width: 420px;
+    margin: 20px auto;
+    background: #f7fcf9;
+    padding: 15px;
+    border-radius: 12px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.history-item img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+hr {
+    display: none;
+}
+
+a {
+    color: #2e7d32;
+}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h1>🌿 Your Plant History</h1>
+
+    {% if records %}
+        {% for record in records %}
+        <div class="history-item">
+    <img src="{{ url_for('static', filename='uploads/' + record[0]) }}">
+    <div>
+        <p><strong>Condition:</strong> {{ record[1] }} ({{ record[2] }}%)</p>
+        <p><strong>Date:</strong> {{ record[3] }}</p>
+    </div>
+</div>
+        <hr>
+        {% endfor %}
+    {% else %}
+        <p>Abhi tak koi upload nahi hui hai. <a href="/upload">Photo upload karo</a></p>
+    {% endif %}
+</div>
+{% endblock %}

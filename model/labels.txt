@@ -1,0 +1,3 @@
+0 Healthy
+1 Nutrient_Deficiency
+2 Diseased
