@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h1>🌿 Diagnosis Report</h1>
+    <img src="{{ url_for('static', filename='uploads/' + filename) }}" width="250"><br><br>
+
+    <h2>Detected Condition: {{ condition }}</h2>
+    <p>Confidence: {{ confidence }}%</p>
+
+    <h3>💊 Fertilizer Recommendation</h3>
+    <p>{{ fertilizer }}</p>
+
+    <h3>💧 Watering Guidance</h3>
+    <p>{{ watering }}</p>
+
+    <a href="/upload" class="btn">Analyze Another Plant</a>
+</div>
+{% endblock %}
