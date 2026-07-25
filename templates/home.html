@@ -3,7 +3,14 @@
 <div class="container">
     <h1>🌿 GreenMind</h1>
     <p>Smart Fertilizer Advisor</p>
-    <p>Apne plant ki photo upload karo aur turant jaano uski health ka haal!</p>
-    <a href="/upload" class="btn">Photo Upload Karo</a>
+    <p>Upload a photo of your plant and instantly know its health status!</p>
+
+    {% if session.username %}
+        <a href="/upload" class="btn">Upload Photo</a>
+    {% else %}
+        <p style="margin-top:20px; color:#888;">Please log in to upload a photo</p>
+        <a href="/login" class="btn">Login to Get Started</a>
+        <p style="margin-top:15px;">New here? <a href="/register">Register here</a></p>
+    {% endif %}
 </div>
 {% endblock %}

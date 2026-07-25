@@ -7,12 +7,37 @@ from model.predict import predict_plant
 from model.recommendations import recommendations
 
 app = Flask(__name__)
+seasonal_plants = {
+    "Summer": {
+        "plants": ["Watermelon", "Cucumber", "Okra (Bhindi)", "Bottle Gourd"],
+        "images": ["season1.jpg", "season2.jpg", "season3.jpg"]
+    },
+    "Monsoon": {
+        "plants": ["Tomato", "Brinjal", "Chilli", "Turmeric"],
+        "images": ["season1.jpg", "season2.jpg", "season3.jpg"]
+    },
+    "Winter": {
+        "plants": ["Carrot", "Cauliflower", "Peas", "Spinach"],
+        "images": ["season1.jpg", "season2.jpg", "season3.jpg"]
+    }
+}
+
+def get_current_season():
+    month = datetime.today().month
+    if month in [3, 4, 5, 6]:
+        return "Summer"
+    elif month in [7, 8, 9]:
+        return "Monsoon"
+    else:
+        return "Winter"
 app.config["UPLOAD_FOLDER"] = "static/uploads"
 app.secret_key = "greenmind_secret_key"
 
 @app.route("/")
 def home():
-    return render_template("home.html")
+    season = get_current_season()
+    season_data = seasonal_plants[season]
+    return render_template("home.html", season=season, plants=season_data["plants"], images=season_data["images"])
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -63,11 +88,11 @@ def logout():
 
 @app.route("/upload", methods=["GET", "POST"])
 def upload():
+    if "username" not in session:
+        return redirect("/login")
+
     message = ""
     if request.method == "POST":
-        if "username" not in session:
-            return redirect("/login")
-
         file = request.files["plant_image"]
         if file:
             filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
