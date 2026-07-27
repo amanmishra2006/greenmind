@@ -13,4 +13,26 @@
         <p style="margin-top:15px;">New here? <a href="/register">Register here</a></p>
     {% endif %}
 </div>
+
+<div class="container" style="margin-top:30px;">
+    <h2>🌱 {{ season }} Season — What's Growing Now</h2>
+    <div class="slideshow-box">
+        {% for item in plant_images %}
+        <div class="slide {% if loop.first %}active{% endif %}">
+            <img src="{{ item.image }}">
+            <p>{{ item.name }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+let slides = document.querySelectorAll(".slide");
+let current = 0;
+setInterval(() => {
+    slides[current].classList.remove("active");
+    current = (current + 1) % slides.length;
+    slides[current].classList.add("active");
+}, 3000);
+</script>
 {% endblock %}
