@@ -8,6 +8,8 @@ from model.predict import predict_plant
 from model.recommendations import recommendations
 
 app = Flask(__name__)
+app.config["UPLOAD_FOLDER"] = "static/uploads"
+app.secret_key = "greenmind_secret_key"
 PIXABAY_API_KEY = "56847495-917ce8f9934386465851ecbf9"
 
 seasonal_plants = {
