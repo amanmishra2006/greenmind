@@ -1,3 +1,4 @@
+import requests
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, session
 import sqlite3
@@ -7,19 +8,12 @@ from model.predict import predict_plant
 from model.recommendations import recommendations
 
 app = Flask(__name__)
+PIXABAY_API_KEY = "56847495-917ce8f9934386465851ecbf9"
+
 seasonal_plants = {
-    "Summer": {
-        "plants": ["Watermelon", "Cucumber", "Okra (Bhindi)", "Bottle Gourd"],
-        "images": ["season1.jpg", "season2.jpg", "season3.jpg"]
-    },
-    "Monsoon": {
-        "plants": ["Tomato", "Brinjal", "Chilli", "Turmeric"],
-        "images": ["season1.jpg", "season2.jpg", "season3.jpg"]
-    },
-    "Winter": {
-        "plants": ["Carrot", "Cauliflower", "Peas", "Spinach"],
-        "images": ["season1.jpg", "season2.jpg", "season3.jpg"]
-    }
+    "Summer": ["Watermelon", "Cucumber", "Okra", "Bottle Gourd"],
+    "Monsoon": ["Tomato", "Brinjal", "Chilli", "Turmeric"],
+    "Winter": ["Carrot", "Cauliflower", "Peas", "Spinach"]
 }
 
 def get_current_season():
@@ -30,14 +24,23 @@ def get_current_season():
         return "Monsoon"
     else:
         return "Winter"
-app.config["UPLOAD_FOLDER"] = "static/uploads"
-app.secret_key = "greenmind_secret_key"
 
+def get_plant_image(plant_name):
+    try:
+        url = f"https://pixabay.com/api/?key={PIXABAY_API_KEY}&q={plant_name}+plant&image_type=photo&per_page=3"
+        response = requests.get(url, timeout=5)
+        data = response.json()
+        if data["hits"]:
+            return data["hits"][0]["webformatURL"]
+    except Exception:
+        pass
+    return "https://via.placeholder.com/300x200?text=No+Image"
 @app.route("/")
 def home():
     season = get_current_season()
-    season_data = seasonal_plants[season]
-    return render_template("home.html", season=season, plants=season_data["plants"], images=season_data["images"])
+    plant_names = seasonal_plants[season]
+    plant_images = [{"name": name, "image": get_plant_image(name)} for name in plant_names]
+    return render_template("home.html", season=season, plant_images=plant_images)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
