@@ -1,3 +1,4 @@
+from model.knowledge_base import get_answer
 import requests
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, session
@@ -37,12 +38,27 @@ def get_plant_image(plant_name):
     except Exception:
         pass
     return "https://via.placeholder.com/300x200?text=No+Image"
+
 @app.route("/")
 def home():
     season = get_current_season()
     plant_names = seasonal_plants[season]
     plant_images = [{"name": name, "image": get_plant_image(name)} for name in plant_names]
-    return render_template("home.html", season=season, plant_images=plant_images)
+
+    stats = None
+    if "username" in session:
+        conn = sqlite3.connect("database.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM plant_history WHERE username = ?", (session["username"],))
+        total = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM plant_history WHERE username = ? AND condition_detected = 'Healthy'", (session["username"],))
+        healthy = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM plant_history WHERE username = ? AND condition_detected != 'Healthy'", (session["username"],))
+        issues = cursor.fetchone()[0]
+        conn.close()
+        stats = {"total": total, "healthy": healthy, "issues": issues}
+
+    return render_template("home.html", season=season, plant_images=plant_images, stats=stats)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -115,7 +131,6 @@ def result():
     info = recommendations[condition]
     confidence_percent = round(confidence * 100, 2)
 
-    # Database me save karo
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
     cursor.execute(
@@ -149,6 +164,19 @@ def history():
     conn.close()
 
     return render_template("history.html", records=records)
+
+@app.route("/assistant", methods=["GET", "POST"])
+def assistant():
+    if "username" not in session:
+        return redirect("/login")
+
+    answer = None
+    question = None
+    if request.method == "POST":
+        question = request.form["question"]
+        answer = get_answer(question)
+
+    return render_template("assistant.html", answer=answer, question=question)
 
 if __name__ == "__main__":
     app.run(debug=True)
