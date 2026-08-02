@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h1>🤖 Plant Care Assistant</h1>
+    <p>Ask me anything about tomato plant care!</p>
+
+    <form method="POST">
+        <input type="text" name="question" placeholder="e.g. How much water does my plant need?" required>
+        <button type="submit" class="btn">Ask</button>
+    </form>
+
+    {% if answer %}
+    <div class="assistant-answer">
+        <p><strong>You asked:</strong> {{ question }}</p>
+        <p><strong>🌿 Assistant:</strong> {{ answer }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
