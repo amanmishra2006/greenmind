@@ -1,4 +1,3 @@
-from model.knowledge_base import get_answer
 import requests
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, session
@@ -165,18 +164,7 @@ def history():
 
     return render_template("history.html", records=records)
 
-@app.route("/assistant", methods=["GET", "POST"])
-def assistant():
-    if "username" not in session:
-        return redirect("/login")
 
-    answer = None
-    question = None
-    if request.method == "POST":
-        question = request.form["question"]
-        answer = get_answer(question)
-
-    return render_template("assistant.html", answer=answer, question=question)
 @app.route("/admin")
 def admin():
     if "username" not in session or session["username"] != "amanmishra":
