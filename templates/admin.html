@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="quick-card" style="max-width:700px; margin:30px auto;">
+    <h1>📊 Admin Dashboard</h1>
+
+    <div class="stats-row">
+        <div class="stat-box">
+            <span class="stat-number">{{ total_users }}</span>
+            <span class="stat-label">Total Users</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-number">{{ total_scans }}</span>
+            <span class="stat-label">Total Scans</span>
+        </div>
+        <div class="stat-box healthy">
+            <span class="stat-number">{{ healthy_count }}</span>
+            <span class="stat-label">Healthy</span>
+        </div>
+        <div class="stat-box issue">
+            <span class="stat-number">{{ issue_count }}</span>
+            <span class="stat-label">Issues Found</span>
+        </div>
+    </div>
+
+    <h3 style="margin-top:30px;">Recent Scans</h3>
+    {% for scan in recent_scans %}
+    <div class="history-item">
+        <div>
+            <p><strong>User:</strong> {{ scan[0] }}</p>
+            <p><strong>Condition:</strong> {{ scan[2] }}</p>
+            <p><strong>Date:</strong> {{ scan[3] }}</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

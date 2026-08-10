@@ -4,20 +4,23 @@
 
 body {
     font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
-    background: #f4faf6;
+    background: #f3faf5;
     margin: 0;
     min-height: 100vh;
     color: #1e2a24;
 }
 
-/* Navbar */
+/* ===== Navbar ===== */
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(90deg, #14532d, #1b5e20);
+    background: linear-gradient(90deg, #0f3d20, #1b5e20);
     padding: 18px 45px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .navbar a {
@@ -25,14 +28,14 @@ body {
     text-decoration: none;
     font-weight: 700;
     font-size: 20px;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
 }
 
 .nav-links a, .nav-user {
-    margin-left: 24px;
-    color: #cfead8;
-    font-size: 15px;
-    font-weight: 400;
+    margin-left: 26px;
+    color: #d4ead9;
+    font-size: 14.5px;
+    font-weight: 500;
     transition: color 0.2s ease;
 }
 
@@ -42,86 +45,91 @@ body {
 
 .page-content {
     padding-top: 40px;
-    padding-bottom: 60px;
+    padding-bottom: 20px;
+    min-height: calc(100vh - 200px);
 }
 
-/* Container / Card */
+/* ===== Card / Container ===== */
 .container {
     background: white;
-    max-width: 480px;
+    max-width: 460px;
     margin: 30px auto;
-    padding: 45px 40px;
+    padding: 42px 38px;
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(20, 83, 45, 0.08);
+    box-shadow: 0 10px 35px rgba(15, 61, 32, 0.08);
     text-align: center;
     border: 1px solid #eaf4ec;
 }
 
 h1 {
-    color: #14532d;
-    margin-bottom: 5px;
+    color: #0f3d20;
+    margin-bottom: 4px;
     font-weight: 700;
     letter-spacing: -0.5px;
+    font-size: 30px;
 }
 
 h2 {
     color: #1b5e20;
-    font-size: 21px;
+    font-size: 20px;
     font-weight: 600;
 }
 
 h3 {
-    color: #14532d;
-    margin-top: 25px;
+    color: #0f3d20;
+    margin-top: 22px;
     margin-bottom: 8px;
     font-weight: 600;
+    font-size: 16px;
 }
 
 p {
-    color: #4a5a52;
-    line-height: 1.6;
+    color: #55655c;
+    line-height: 1.65;
+    font-size: 15px;
 }
 
-/* Form inputs */
+/* ===== Forms ===== */
 input[type="text"], input[type="password"], input[type="file"] {
     width: 100%;
     padding: 13px 16px;
     margin-top: 8px;
     border: 1.5px solid #dcefe1;
     border-radius: 10px;
-    font-size: 15px;
+    font-size: 14.5px;
     background-color: #fafffc;
     font-family: 'Poppins', sans-serif;
-    transition: border-color 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 input:focus {
     outline: none;
     border-color: #2e7d32;
+    box-shadow: 0 0 0 3px rgba(46,125,50,0.1);
 }
 
-/* Button */
+/* ===== Buttons ===== */
 .btn {
     display: inline-block;
     margin-top: 20px;
-    padding: 13px 32px;
-    background: linear-gradient(90deg, #2e7d32, #1b5e20);
+    padding: 13px 34px;
+    background: linear-gradient(90deg, #2e7d32, #14532d);
     color: white;
     text-decoration: none;
     border: none;
     border-radius: 30px;
-    font-size: 15px;
+    font-size: 14.5px;
     font-weight: 600;
     font-family: 'Poppins', sans-serif;
     cursor: pointer;
     letter-spacing: 0.3px;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
-    box-shadow: 0 4px 14px rgba(27, 94, 32, 0.3);
+    box-shadow: 0 4px 16px rgba(20, 83, 45, 0.28);
 }
 
 .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(27, 94, 32, 0.4);
+    box-shadow: 0 6px 20px rgba(20, 83, 45, 0.35);
 }
 
 .container img {
@@ -129,68 +137,64 @@ input:focus {
     box-shadow: 0 6px 18px rgba(0,0,0,0.12);
 }
 
-/* History cards */
+/* ===== History ===== */
 .history-item {
     text-align: left;
-    max-width: 420px;
-    margin: 18px auto;
+    max-width: 440px;
+    margin: 16px auto;
     background: white;
     padding: 16px;
     border-radius: 14px;
     display: flex;
     gap: 15px;
     align-items: center;
-    box-shadow: 0 4px 14px rgba(20,83,45,0.06);
+    box-shadow: 0 4px 16px rgba(15,61,32,0.06);
     border: 1px solid #eaf4ec;
+    transition: transform 0.15s ease;
+}
+
+.history-item:hover {
+    transform: translateY(-2px);
 }
 
 .history-item img {
-    width: 90px;
-    height: 90px;
+    width: 85px;
+    height: 85px;
     object-fit: cover;
     flex-shrink: 0;
     border-radius: 10px;
 }
 
-hr {
-    display: none;
-}
+hr { display: none; }
 
-a {
-    color: #2e7d32;
-}
+a { color: #2e7d32; }
 
-/* Slideshow */
+/* ===== Seasonal Slideshow ===== */
 .slideshow-box {
     position: relative;
     width: 100%;
     max-width: 400px;
-    height: 280px;
-    margin: 20px auto 0;
+    height: 260px;
+    margin: 18px auto 0;
     border-radius: 14px;
     overflow: hidden;
     background: #f7fcf9;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
 }
 
 .slide {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     opacity: 0;
     transition: opacity 0.8s ease-in-out;
-    text-align: center;
 }
 
-.slide.active {
-    opacity: 1;
-}
+.slide.active { opacity: 1; }
 
 .slide img {
     width: 100%;
-    height: 220px;
+    height: 205px;
     object-fit: cover;
     border-radius: 14px 14px 0 0;
 }
@@ -198,17 +202,19 @@ a {
 .slide p {
     margin: 8px 0 0;
     font-weight: 600;
-    color: #14532d;
+    color: #0f3d20;
+    font-size: 14px;
 }
 
-/* Home Page Grid */
+/* ===== Home Page Grid ===== */
 .home-grid {
     display: flex;
-    gap: 25px;
-    max-width: 900px;
-    margin: 40px auto;
+    gap: 24px;
+    max-width: 920px;
+    margin: 35px auto;
     flex-wrap: wrap;
     justify-content: center;
+    padding: 0 20px;
 }
 
 .quick-card {
@@ -216,9 +222,9 @@ a {
     flex: 1;
     min-width: 320px;
     max-width: 400px;
-    padding: 32px;
+    padding: 34px;
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(20, 83, 45, 0.08);
+    box-shadow: 0 10px 35px rgba(15, 61, 32, 0.08);
     text-align: center;
     border: 1px solid #eaf4ec;
 }
@@ -226,22 +232,22 @@ a {
 .quick-card .tagline {
     color: #2e7d32;
     font-weight: 600;
-    margin-top: -6px;
-    font-size: 15px;
+    margin-top: -4px;
+    font-size: 13px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.2px;
 }
 
 .small-text {
-    font-size: 14px;
-    color: #7c8b83;
+    font-size: 13.5px;
+    color: #8a9990;
 }
 
 .btn-small {
-    padding: 11px 26px;
+    padding: 11px 28px;
     font-size: 14px;
-    margin-top: 12px;
-    margin-bottom: 8px;
+    margin-top: 14px;
+    margin-bottom: 6px;
 }
 
 .stats-row {
@@ -252,49 +258,66 @@ a {
 
 .stat-box {
     flex: 1;
-    background: #f4faf6;
+    background: #f3faf5;
     border-radius: 12px;
-    padding: 14px 5px;
+    padding: 14px 4px;
+    transition: transform 0.15s ease;
 }
 
-.stat-box.healthy {
-    background: #e3f6e8;
-}
+.stat-box:hover { transform: translateY(-2px); }
 
-.stat-box.issue {
-    background: #fdecea;
-}
+.stat-box.healthy { background: #e6f7ea; }
+.stat-box.issue { background: #fdeeec; }
 
 .stat-number {
     display: block;
-    font-size: 24px;
+    font-size: 23px;
     font-weight: 700;
-    color: #14532d;
+    color: #0f3d20;
 }
 
 .stat-label {
-    font-size: 11px;
-    color: #6b7d73;
+    font-size: 10.5px;
+    color: #7c8b83;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-/* Assistant chat */
+/* ===== Assistant Chat ===== */
 .assistant-answer {
     text-align: left;
-    background: #f4faf6;
+    background: #f3faf5;
     padding: 20px;
     border-radius: 14px;
     margin-top: 20px;
     border: 1px solid #eaf4ec;
 }
 
-/* Footer */
+.assistant-answer p { font-size: 14.5px; }
+
+/* ===== Footer ===== */
 .site-footer {
     text-align: center;
-    padding: 25px;
-    color: #7c8b83;
-    font-size: 13px;
-    border-top: 1px solid #e0ede4;
-    margin-top: 40px;
+    padding: 26px;
+    color: #8a9990;
+    font-size: 12.5px;
+    border-top: 1px solid #e2eee5;
+    margin-top: 30px;
+    background: white;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+    .navbar {
+        flex-direction: column;
+        gap: 10px;
+        padding: 14px 20px;
+    }
+    .nav-links a, .nav-user {
+        margin-left: 14px;
+    }
+    .container, .quick-card {
+        margin: 16px;
+        padding: 28px 24px;
+    }
 }

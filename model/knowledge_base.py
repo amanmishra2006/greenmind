@@ -1,8 +1,8 @@
 import google.generativeai as genai
 
-genai.configure(api_key="AQ.Ab8RN6JAY4DY8zzgNk4bnqLs4ubIIiOznrPNqePmlq2Mo7nroA")
+genai.configure(api_key="AQ.Ab8RN6IaQ6IsdQect458vw4GUjAjdSMdfITlqGpbNv3Kp78Uww")
 
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-2.0-flash")
 
 def get_answer(question):
     try:
