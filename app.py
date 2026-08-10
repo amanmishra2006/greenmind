@@ -177,6 +177,38 @@ def assistant():
         answer = get_answer(question)
 
     return render_template("assistant.html", answer=answer, question=question)
+@app.route("/admin")
+def admin():
+    if "username" not in session or session["username"] != "amanmishra":
+        return redirect("/login")
 
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM users")
+    total_users = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM plant_history")
+    total_scans = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM plant_history WHERE condition_detected = 'Healthy'")
+    healthy_count = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM plant_history WHERE condition_detected != 'Healthy'")
+    issue_count = cursor.fetchone()[0]
+
+    cursor.execute("SELECT username, filename, condition_detected, upload_date FROM plant_history ORDER BY id DESC LIMIT 10")
+    recent_scans = cursor.fetchall()
+
+    conn.close()
+
+    return render_template(
+        "admin.html",
+        total_users=total_users,
+        total_scans=total_scans,
+        healthy_count=healthy_count,
+        issue_count=issue_count,
+        recent_scans=recent_scans
+    )
 if __name__ == "__main__":
     app.run(debug=True)

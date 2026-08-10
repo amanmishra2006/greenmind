@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <title>GreenMind</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -14,8 +14,10 @@
             <a href="/">Home</a>
             {% if session.username %}
                 <a href="/upload">Upload</a>
+                {% if session.username == "amanmishra" %}
+    <a href="/admin">Admin</a>
+{% endif %}
                 <a href="/assistant">Assistant</a>
-                <a href="/history">History</a>
                 <span class="nav-user">Hi, {{ session.username }}</span>
                 <a href="/logout">Logout</a>
             {% else %}
@@ -28,6 +30,7 @@
     <div class="page-content">
         {% block content %}{% endblock %}
     </div>
+
     <div class="site-footer">
         🌿 GreenMind — Smart Fertilizer Advisor &copy; 2026
     </div>
