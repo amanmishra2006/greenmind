@@ -43,6 +43,7 @@ def home():
     season = get_current_season()
     plant_names = seasonal_plants[season]
     plant_images = [{"name": name, "image": get_plant_image(name)} for name in plant_names]
+    farmer_image = get_plant_image("indian farmer field")
 
     stats = None
     if "username" in session:
@@ -57,7 +58,7 @@ def home():
         conn.close()
         stats = {"total": total, "healthy": healthy, "issues": issues}
 
-    return render_template("home.html", season=season, plant_images=plant_images, stats=stats)
+    return render_template("home.html", season=season, plant_images=plant_images, stats=stats, farmer_image=farmer_image)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -164,7 +165,6 @@ def history():
 
     return render_template("history.html", records=records)
 
-
 @app.route("/admin")
 def admin():
     if "username" not in session or session["username"] != "amanmishra":
@@ -198,5 +198,6 @@ def admin():
         issue_count=issue_count,
         recent_scans=recent_scans
     )
+
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,28 +1,75 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container">
-    <h1>🌿 GreenMind</h1>
-    <p>Smart Fertilizer Advisor</p>
-    <p>Upload a photo of your plant and instantly know its health status!</p>
 
-    {% if session.username %}
-        <a href="/upload" class="btn">Upload Photo</a>
-    {% else %}
-        <p style="margin-top:20px; color:#888;">Please log in to upload a photo</p>
-        <a href="/login" class="btn">Login to Get Started</a>
-        <p style="margin-top:15px;">New here? <a href="/register">Register here</a></p>
-    {% endif %}
+<div class="hero-banner">
+    <img src="{{ farmer_image }}" alt="Farming">
+    <div class="hero-overlay">
+        <h1>🌿 GreenMind</h1>
+        <p>AI-Powered Plant Health & Fertilizer Advisor</p>
+    </div>
 </div>
 
-<div class="container" style="margin-top:30px;">
-    <h2>🌱 {{ season }} Season — What's Growing Now</h2>
-    <div class="slideshow-box">
-        {% for item in plant_images %}
-        <div class="slide {% if loop.first %}active{% endif %}">
-            <img src="{{ item.image }}">
-            <p>{{ item.name }}</p>
+<div class="home-grid">
+
+    <div class="quick-card">
+        <h2>Quick Diagnosis</h2>
+        <p class="tagline">Smart Fertilizer Advisor</p>
+
+        {% if session.username %}
+            <a href="/upload" class="btn btn-small">📷 Upload Photo</a>
+
+            {% if stats %}
+            <div class="stats-row">
+                <div class="stat-box">
+                    <span class="stat-number">{{ stats.total }}</span>
+                    <span class="stat-label">Total Scans</span>
+                </div>
+                <div class="stat-box healthy">
+                    <span class="stat-number">{{ stats.healthy }}</span>
+                    <span class="stat-label">Healthy</span>
+                </div>
+                <div class="stat-box issue">
+                    <span class="stat-number">{{ stats.issues }}</span>
+                    <span class="stat-label">Need Attention</span>
+                </div>
+            </div>
+            {% endif %}
+        {% else %}
+            <p class="small-text">Upload a plant photo and instantly know its health.</p>
+            <a href="/login" class="btn btn-small">Login to Get Started</a>
+            <p class="small-text">New here? <a href="/register">Register here</a></p>
+        {% endif %}
+    </div>
+
+    <div class="quick-card">
+        <h3>🌱 {{ season }} Season — What's Growing Now</h3>
+        <div class="slideshow-box">
+            {% for item in plant_images %}
+            <div class="slide {% if loop.first %}active{% endif %}">
+                <img src="{{ item.image }}">
+                <p>{{ item.name }}</p>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
+    </div>
+
+</div>
+
+<div class="features-row">
+    <div class="feature-item">
+        <span class="feature-icon">🔍</span>
+        <h3>Scan with Confidence</h3>
+        <p class="small-text">AI-powered diagnosis backed by real plant image training.</p>
+    </div>
+    <div class="feature-item">
+        <span class="feature-icon">🌦️</span>
+        <h3>Plan Around Seasons</h3>
+        <p class="small-text">Know what's growing well right now in your region.</p>
+    </div>
+    <div class="feature-item">
+        <span class="feature-icon">📈</span>
+        <h3>Track Your Progress</h3>
+        <p class="small-text">Every scan saved to your personal history dashboard.</p>
     </div>
 </div>
 
