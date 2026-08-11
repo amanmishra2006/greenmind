@@ -1,5 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
+<div class="season-effect season-{{ season|lower }}">
+    {% if season == "Monsoon" %}
+        {% for i in range(25) %}
+        <div class="drop" style="left: {{ (i * 4) % 100 }}%; animation-duration: {{ 0.6 + (i % 5) * 0.15 }}s; animation-delay: {{ (i % 7) * 0.2 }}s;"></div>
+        {% endfor %}
+    {% endif %}
+</div>
 
 <div class="hero-banner">
     <img src="{{ farmer_image }}" alt="Farming">

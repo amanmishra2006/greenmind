@@ -14,9 +14,9 @@ app.secret_key = "greenmind_secret_key"
 PIXABAY_API_KEY = "56847495-917ce8f9934386465851ecbf9"
 
 seasonal_plants = {
-    "Summer": ["Watermelon", "Cucumber", "Okra", "Bottle Gourd"],
-    "Monsoon": ["Tomato", "Brinjal", "Chilli", "Turmeric"],
-    "Winter": ["Carrot", "Cauliflower", "Peas", "Spinach"]
+"Summer": ["Watermelon", "Cucumber", "Okra", "Bottle Gourd", "Muskmelon", "Pumpkin", "Ridge Gourd", "Sweet Corn"],
+"Monsoon": ["Tomato", "Brinjal", "Chilli", "Turmeric", "Ginger", "Beans", "Maize", "Soybean"],
+"Winter": ["Carrot", "Cauliflower", "Peas", "Spinach", "Radish", "Garlic", "Onion", "Cabbage"]
 }
 
 def get_current_season():

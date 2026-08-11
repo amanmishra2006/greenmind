@@ -455,3 +455,70 @@ a { color: var(--forest-light); }
     width: 100%; height: 100%;
     background: rgba(253, 251, 245, 0.75);
 }
+.season-effect {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50;
+    overflow: hidden;
+}
+
+/* ===== Monsoon: Realistic Rain Drops ===== */
+.season-monsoon {
+    background: transparent;
+}
+
+.season-monsoon .drop {
+    position: absolute;
+    top: -150px;
+    width: 2px;
+    height: 100px;
+    background: linear-gradient(to bottom, rgba(174,214,241,0) 0%, rgba(174,214,241,0.6) 100%);
+    animation-name: rainFall;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+@keyframes rainFall {
+    to {
+        transform: translateY(1100px);
+    }
+}
+
+/* ===== Summer: Sun Rays ===== */
+.season-summer::before {
+    content: "";
+    position: absolute;
+    top: -10%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255, 214, 102, 0.4) 0%, rgba(255, 214, 102, 0) 70%);
+    animation: sunPulse 4s ease-in-out infinite;
+}
+
+@keyframes sunPulse {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.1); }
+}
+
+/* ===== Winter: Fog/Mist ===== */
+.season-winter::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -20%;
+    width: 140%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(200, 210, 210, 0.22), transparent);
+    animation: fogDrift 12s ease-in-out infinite;
+}
+
+@keyframes fogDrift {
+    0% { transform: translateX(-10%); }
+    50% { transform: translateX(10%); }
+    100% { transform: translateX(-10%); }
+}
