@@ -8,12 +8,15 @@
 </head>
 <body>
 
+    <div class="top-banner">जय जवान जय किसान 🌾</div>
+
     <nav class="navbar">
         <a href="/">🌿 GreenMind</a>
         <div class="nav-links">
             <a href="/">Home</a>
             {% if session.username %}
                 <a href="/upload">Upload</a>
+                <a href="/soil">Soil</a>
                 {% if session.username == "amanmishra" %}
     <a href="/admin">Admin</a>
 {% endif %}

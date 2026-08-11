@@ -53,6 +53,19 @@
         </div>
     </div>
 
+    {% if weather %}
+    <div class="quick-card">
+        <h3>🌦️ Current Weather</h3>
+        <div class="weather-box">
+            <span class="weather-temp">{{ weather.temp }}°C</span>
+            <div class="weather-details">
+                <p>💧 Humidity: {{ weather.humidity }}%</p>
+                <p>🌧️ Rain: {{ weather.rain }} mm</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 
 <div class="features-row">
