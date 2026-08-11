@@ -123,6 +123,7 @@ def logout():
     return redirect("/")
 
 @app.route("/upload", methods=["GET", "POST"])
+@app.route("/upload", methods=["GET", "POST"])
 def upload():
     if "username" not in session:
         return redirect("/login")
@@ -135,7 +136,8 @@ def upload():
             file.save(filepath)
             return redirect("/result?filename=" + file.filename)
 
-    return render_template("upload.html", message=message)
+    bg_image = get_plant_image("blooming flowers lush garden green")
+    return render_template("upload.html", message=message, bg_image=bg_image)
 
 @app.route("/result")
 def result():
@@ -214,6 +216,7 @@ def admin():
         recent_scans=recent_scans
     )
 @app.route("/soil", methods=["GET", "POST"])
+@app.route("/soil", methods=["GET", "POST"])
 def soil():
     if "username" not in session:
         return redirect("/login")
@@ -231,6 +234,7 @@ def soil():
 
         recommendations, disclaimer = analyze_soil(soil_type, ph, nitrogen, phosphorus, potassium, moisture, organic_matter)
 
-    return render_template("soil.html", recommendations=recommendations, disclaimer=disclaimer)
+    bg_image = get_plant_image("soil field farmland")
+    return render_template("soil.html", recommendations=recommendations, disclaimer=disclaimer, bg_image=bg_image)
 if __name__ == "__main__":
     app.run(debug=True)
