@@ -1,4 +1,5 @@
 import requests
+from model.soil_logic import analyze_soil
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, session
 import sqlite3
@@ -37,6 +38,19 @@ def get_plant_image(plant_name):
     except Exception:
         pass
     return "https://via.placeholder.com/300x200?text=No+Image"
+def get_weather():
+    try:
+        url = "https://api.open-meteo.com/v1/forecast?latitude=28.6139&longitude=77.2090&current=temperature_2m,relative_humidity_2m,precipitation&timezone=Asia%2FKolkata"
+        response = requests.get(url, timeout=5)
+        data = response.json()
+        current = data["current"]
+        return {
+            "temp": current["temperature_2m"],
+            "humidity": current["relative_humidity_2m"],
+            "rain": current["precipitation"]
+        }
+    except Exception:
+        return None
 
 @app.route("/")
 def home():
@@ -44,6 +58,7 @@ def home():
     plant_names = seasonal_plants[season]
     plant_images = [{"name": name, "image": get_plant_image(name)} for name in plant_names]
     farmer_image = get_plant_image("indian farmer field")
+    weather = get_weather()
 
     stats = None
     if "username" in session:
@@ -58,7 +73,7 @@ def home():
         conn.close()
         stats = {"total": total, "healthy": healthy, "issues": issues}
 
-    return render_template("home.html", season=season, plant_images=plant_images, stats=stats, farmer_image=farmer_image)
+    return render_template("home.html", season=season, plant_images=plant_images, stats=stats, farmer_image=farmer_image, weather=weather)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -198,6 +213,24 @@ def admin():
         issue_count=issue_count,
         recent_scans=recent_scans
     )
+@app.route("/soil", methods=["GET", "POST"])
+def soil():
+    if "username" not in session:
+        return redirect("/login")
 
+    recommendations = None
+    disclaimer = None
+    if request.method == "POST":
+        soil_type = request.form["soil_type"]
+        ph = float(request.form["ph"])
+        nitrogen = float(request.form["nitrogen"])
+        phosphorus = float(request.form["phosphorus"])
+        potassium = float(request.form["potassium"])
+        moisture = float(request.form["moisture"])
+        organic_matter = float(request.form["organic_matter"])
+
+        recommendations, disclaimer = analyze_soil(soil_type, ph, nitrogen, phosphorus, potassium, moisture, organic_matter)
+
+    return render_template("soil.html", recommendations=recommendations, disclaimer=disclaimer)
 if __name__ == "__main__":
     app.run(debug=True)

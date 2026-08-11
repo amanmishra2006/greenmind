@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="max-width:560px;">
+    <h1>🧪 Soil Analysis</h1>
+    <p>Enter your soil test values to get care recommendations</p>
+
+    <form method="POST" style="text-align:left;">
+        <label class="small-text">Soil Type</label>
+        <select name="soil_type" required style="width:100%; padding:12px; margin-top:6px; margin-bottom:12px; border-radius:10px; border:1.5px solid #e0e9e2; background:#eef5ee; font-family:'Poppins',sans-serif;">
+            <option value="Sandy">Sandy</option>
+            <option value="Loamy">Loamy</option>
+            <option value="Clayey">Clayey</option>
+            <option value="Silty">Silty</option>
+        </select>
+
+        <label class="small-text">pH (0–14)</label>
+        <input type="text" name="ph" placeholder="e.g. 6.5" required>
+
+        <label class="small-text" style="display:block; margin-top:12px;">Nitrogen (kg/ha)</label>
+        <input type="text" name="nitrogen" placeholder="e.g. 250" required>
+
+        <label class="small-text" style="display:block; margin-top:12px;">Phosphorus (kg/ha)</label>
+        <input type="text" name="phosphorus" placeholder="e.g. 15" required>
+
+        <label class="small-text" style="display:block; margin-top:12px;">Potassium (kg/ha)</label>
+        <input type="text" name="potassium" placeholder="e.g. 130" required>
+
+        <label class="small-text" style="display:block; margin-top:12px;">Moisture (%)</label>
+        <input type="text" name="moisture" placeholder="e.g. 25" required>
+
+        <label class="small-text" style="display:block; margin-top:12px;">Organic Matter (%)</label>
+        <input type="text" name="organic_matter" placeholder="e.g. 2.5" required>
+
+        <div style="text-align:center;">
+            <button type="submit" class="btn">Analyze Soil</button>
+        </div>
+    </form>
+
+    {% if recommendations %}
+    <div class="assistant-answer">
+        <h3>📋 Analysis & Recommendations</h3>
+        {% for rec in recommendations %}
+        <div style="margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid #e0e9e2;">
+            <p><strong>🔍 {{ rec.problem }}</strong></p>
+            {% if rec.cause != "-" %}
+            <p class="small-text"><strong>Possible Cause:</strong> {{ rec.cause }}</p>
+            {% endif %}
+            <p><strong>✅ Action:</strong> {{ rec.action }}</p>
+            <p class="small-text"><strong>Why:</strong> {{ rec.reason }}</p>
+        </div>
+        {% endfor %}
+        <p class="small-text" style="font-style:italic;">⚠️ {{ disclaimer }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

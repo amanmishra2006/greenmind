@@ -225,8 +225,8 @@ a { color: var(--forest-light); }
 /* ===== Home Page Grid ===== */
 .home-grid {
     display: flex;
-    gap: 24px;
-    max-width: 920px;
+    gap: 20px;
+    max-width: 1200px;
     margin: 35px auto;
     flex-wrap: wrap;
     justify-content: center;
@@ -236,8 +236,8 @@ a { color: var(--forest-light); }
 .quick-card {
     background: white;
     flex: 1;
-    min-width: 320px;
-    max-width: 400px;
+    min-width: 280px;
+    max-width: 380px;
     padding: 34px;
     border-radius: 22px;
     box-shadow: 0 14px 40px rgba(13, 59, 36, 0.1);
@@ -405,4 +405,35 @@ a { color: var(--forest-light); }
     font-size: 32px;
     display: block;
     margin-bottom: 10px;
+}
+.top-banner {
+    background: #0d3b24;
+    color: #e8a33d;
+    text-align: center;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+.weather-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 20px;
+    padding: 20px;
+    background: var(--sage);
+    border-radius: 14px;
+}
+
+.weather-temp {
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--forest);
+}
+
+.weather-details p {
+    margin: 4px 0;
+    font-size: 14px;
+    text-align: left;
 }
