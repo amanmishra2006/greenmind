@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="max-width:600px;">
+    <h1>🛍️ Your Cart</h1>
+
+    {% if items %}
+        {% for item in items %}
+        <div class="history-item">
+            <div>
+                <p><strong>{{ item.name }}</strong></p>
+                <p class="small-text">{{ item.category }}</p>
+                <p>₹{{ item.price }}</p>
+            </div>
+        </div>
+        {% endfor %}
+        <h2 style="margin-top:20px;">Total: ₹{{ total }}</h2>
+        <a href="/store" class="btn">Continue Shopping</a>
+    {% else %}
+        <p>Your cart is empty.</p>
+        <a href="/store" class="btn">Browse Plants</a>
+    {% endif %}
+</div>
+{% endblock %}

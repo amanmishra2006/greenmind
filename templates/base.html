@@ -8,27 +8,46 @@
 </head>
 <body>
 
-    <div class="top-banner">जय जवान जय किसान 🌾</div>
+    
 
     <nav class="navbar">
         <a href="/">🌿 GreenMind</a>
         <div class="nav-links">
             <a href="/">Home</a>
             {% if session.username %}
-                <a href="/upload">Upload</a>
-                <a href="/soil">Soil</a>
-                {% if session.username == "amanmishra" %}
-    <a href="/admin">Admin</a>
-{% endif %}
-                
+                <a href="/store">Store</a>
                 <span class="nav-user">Hi, {{ session.username }}</span>
                 <a href="/logout">Logout</a>
             {% else %}
                 <a href="/login">Login</a>
                 <a href="/register">Register</a>
             {% endif %}
+            <button class="hamburger-btn" onclick="toggleMenu()">☰</button>
         </div>
     </nav>
+
+    <div id="sideMenu" class="side-menu">
+        <button class="close-btn" onclick="toggleMenu()">✕</button>
+        <a href="/">Home</a>
+        {% if session.username %}
+            <a href="/upload">Upload</a>
+            <a href="/store">Store</a>
+            <a href="/cart">Cart {% if cart_count %}({{ cart_count }}){% endif %}</a>
+            <a href="/my-listings">My Listings</a>
+            <a href="/soil">Soil</a>
+            <a href="/history">History</a>
+            {% if session.username == "amanmishra" %}
+                <a href="/admin">Admin</a>
+            {% endif %}
+            <span class="nav-user">Hi, {{ session.username }}</span>
+            <a href="/logout">Logout</a>
+        {% else %}
+            <a href="/login">Login</a>
+            <a href="/register">Register</a>
+        {% endif %}
+    </div>
+
+    <div id="menuOverlay" class="menu-overlay" onclick="toggleMenu()"></div>
 
     <div class="page-content">
         {% block content %}{% endblock %}
@@ -37,6 +56,13 @@
     <div class="site-footer">
         🌿 GreenMind — Smart Fertilizer Advisor &copy; 2026
     </div>
+
+    <script>
+    function toggleMenu() {
+        document.getElementById("sideMenu").classList.toggle("open");
+        document.getElementById("menuOverlay").classList.toggle("show");
+    }
+    </script>
 
 </body>
 </html>

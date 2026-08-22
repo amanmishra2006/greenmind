@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-bg" style="background-image: url('{{ url_for('static', filename='images/store-bg.png') }}');"></div>
+<div class="store-hero">
+    <h1>🛒 GreenMarket</h1>    <p>Bring nature home — discover beautiful plants from local gardeners.</p>
+    <a href="/sell" class="btn">🌱 Sell Your Plant</a>
+</div>
+
+<div class="store-controls">
+    <input type="text" id="searchBox" placeholder="Search plants by name..." onkeyup="filterPlants()">
+
+    <select id="categoryFilter" onchange="filterPlants()">
+        <option value="all">All Categories</option>
+        {% for cat in categories %}
+        <option value="{{ cat }}">{{ cat }}</option>
+        {% endfor %}
+    </select>
+
+    <select id="maintenanceFilter" onchange="filterPlants()">
+        <option value="all">All Maintenance Levels</option>
+        <option value="Low">Low Maintenance</option>
+        <option value="Medium">Medium Maintenance</option>
+        <option value="High">High Maintenance</option>
+    </select>
+
+    <select id="priceFilter" onchange="filterPlants()">
+        <option value="all">All Prices</option>
+        <option value="0-200">Under ₹200</option>
+        <option value="200-400">₹200 – ₹400</option>
+        <option value="400-1000">Above ₹400</option>
+    </select>
+</div>
+
+<div class="plant-grid" id="plantGrid">
+    {% for plant in plants %}
+    <div class="plant-card"
+         data-name="{{ plant.name|lower }}"
+         data-category="{{ plant.category }}"
+         data-maintenance="{{ plant.maintenance }}"
+         data-price="{{ plant.price }}">
+        <a href="/wishlist/add/{{ plant.id }}" class="wishlist-icon">❤️</a>
+        <img src="{{ plant.image }}" alt="{{ plant.name }}">
+        <div class="plant-info">
+            <h3>{{ plant.name }}</h3>
+            <p class="plant-category">{{ plant.category }}</p>
+            <p class="plant-desc">{{ plant.desc }}</p>
+            <div class="plant-meta">
+                <span>⭐ {{ plant.rating }}</span>
+                <span>Qty: {{ plant.qty }}</span>
+            </div>
+            <p class="plant-seller">Sold by {{ plant.seller }}</p>
+            <p class="plant-price">₹{{ plant.price }}</p>
+            <div class="plant-actions">
+                <a href="/cart/add/{{ plant.id }}" class="btn btn-small">Add to Cart</a>
+                <a href="/checkout/{{ plant.id }}" class="btn-outline">Buy Now</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+function filterPlants() {
+    const search = document.getElementById("searchBox").value.toLowerCase();
+    const category = document.getElementById("categoryFilter").value;
+    const maintenance = document.getElementById("maintenanceFilter").value;
+    const priceRange = document.getElementById("priceFilter").value;
+    const cards = document.querySelectorAll(".plant-card");
+
+    cards.forEach(card => {
+        const name = card.dataset.name;
+        const cat = card.dataset.category;
+        const maint = card.dataset.maintenance;
+        const price = parseInt(card.dataset.price);
+
+        let priceMatch = true;
+        if (priceRange !== "all") {
+            const [min, max] = priceRange.split("-").map(Number);
+            priceMatch = price >= min && price <= max;
+        }
+
+        const matches =
+            name.includes(search) &&
+            (category === "all" || cat === category) &&
+            (maintenance === "all" || maint === maintenance) &&
+            priceMatch;
+
+        card.style.display = matches ? "flex" : "none";
+    });
+}
+</script>
+{% endblock %}

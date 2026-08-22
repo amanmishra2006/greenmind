@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="max-width:480px;">
+    <h1>✅ Order Confirmed!</h1>
+    <p>Thank you, {{ buyer_name }}! Your order for <strong>{{ plant.name }}</strong> (₹{{ plant.price }}) has been placed successfully.</p>
+    <p class="small-text">The seller will contact you soon regarding delivery.</p>
+    <a href="/store" class="btn">Continue Shopping</a>
+</div>
+{% endblock %}
