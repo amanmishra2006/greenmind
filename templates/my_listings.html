@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="max-width:600px;">
+    <h1>📋 My Listings</h1>
+
+    {% if listings %}
+        {% for item in listings %}
+        <div class="history-item">
+            <div style="flex-grow:1;">
+                <p><strong>{{ item[1] }}</strong> — ₹{{ item[2] }}</p>
+                <p class="small-text">{{ item[4] }} | Qty: {{ item[3] }}</p>
+                <p class="small-text">📍 {{ item[5] }} | {{ item[6] }}</p>
+                <p class="small-text">Listed on: {{ item[7] }}</p>
+                <p style="margin-top:6px;">
+                    <span style="padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600;
+                        {% if item[8] == 'Available' %}
+                            background:#e2f3e6; color:#1b6b3f;
+                        {% else %}
+                            background:#fbebe3; color:#c0392b;
+                        {% endif %}">
+                        {{ item[8] }}
+                    </span>
+                </p>
+                <a href="/listing/toggle-status/{{ item[0] }}" class="btn btn-small" style="margin-top:8px;">
+                    {% if item[8] == 'Available' %}Mark as Out of Stock{% else %}Mark as Available{% endif %}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>You haven't listed any plants yet.</p>
+        <a href="/sell" class="btn">Sell Your Plant</a>
+    {% endif %}
+</div>
+{% endblock %}

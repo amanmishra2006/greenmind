@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div
+    class="page-bg"
+    style="background-image: url('{{ url_for('static', filename='images/store-bg.png') }}');"
+></div>
+
+<div class="container" style="max-width: 520px;">
+
+    <h1>🌱 Sell Your Plant</h1>
+
+    <p>
+        Fill in the details below to list your plant on GreenMarket
+    </p>
+
+    <a href="/my-listings" class="btn" style="margin-bottom: 10px;">
+        📋 View My Listings
+    </a>
+
+    <form
+        method="POST"
+        enctype="multipart/form-data"
+        style="text-align: left;"
+    >
+
+        <label class="small-text">
+            Plant Photo
+        </label>
+
+        <input
+            type="file"
+            name="plant_photo"
+            accept="image/*"
+        >
+
+
+        <label
+            class="small-text"
+            style="display: block; margin-top: 12px;"
+        >
+            Plant Name
+        </label>
+
+        <input
+            type="text"
+            name="plant_name"
+            placeholder="e.g. Money Plant"
+            required
+        >
+
+
+        <label
+            class="small-text"
+            style="display: block; margin-top: 12px;"
+        >
+            Price (₹)
+        </label>
+
+        <input
+            type="text"
+            name="price"
+            placeholder="e.g. 250"
+            required
+        >
+
+
+        <label
+            class="small-text"
+            style="display: block; margin-top: 12px;"
+        >
+            Quantity
+        </label>
+
+        <input
+            type="text"
+            name="quantity"
+            placeholder="e.g. 10"
+            required
+        >
+
+
+        <label
+            class="small-text"
+            style="display: block; margin-top: 12px;"
+        >
+            Category
+        </label>
+
+        <select
+            name="category"
+            style="
+                width: 100%;
+                padding: 12px;
+                margin-top: 6px;
+                border-radius: 10px;
+                border: 1.5px solid #e0e9e2;
+                background: #eef5ee;
+                font-family: 'Poppins', sans-serif;
+            "
+        >
+            <option>Indoor Plants</option>
+            <option>Outdoor Plants</option>
+            <option>Flowering Plants</option>
+            <option>Succulents & Cactus</option>
+            <option>Medicinal Plants</option>
+            <option>Fruit Plants</option>
+            <option>Decorative Plants</option>
+        </select>
+
+
+        <label
+            class="small-text"
+            style="display: block; margin-top: 12px;"
+        >
+            Description
+        </label>
+
+        <input
+            type="text"
+            name="description"
+            placeholder="Short description"
+        >
+
+
+        <label
+            class="small-text"
+            style="display: block; margin-top: 12px;"
+        >
+            Your Location
+        </label>
+
+        <input
+            type="text"
+            name="location"
+            placeholder="e.g. Mumbai, Maharashtra"
+        >
+
+
+        <label
+            class="small-text"
+            style="display: block; margin-top: 12px;"
+        >
+            Delivery Option
+        </label>
+
+        <select
+            name="delivery"
+            style="
+                width: 100%;
+                padding: 12px;
+                margin-top: 6px;
+                border-radius: 10px;
+                border: 1.5px solid #e0e9e2;
+                background: #eef5ee;
+                font-family: 'Poppins', sans-serif;
+            "
+        >
+            <option>Home Delivery</option>
+            <option>Pickup Only</option>
+            <option>Both</option>
+        </select>
+
+
+        <div style="text-align: center;">
+
+            <button type="submit" class="btn">
+                Submit Listing
+            </button>
+
+        </div>
+
+    </form>
+
+
+    {% if message %}
+
+    <div class="assistant-answer">
+
+        <p>{{ message }}</p>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

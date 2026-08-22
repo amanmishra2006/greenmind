@@ -22,6 +22,37 @@ CREATE TABLE IF NOT EXISTS plant_history (
 )
 """)
 
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS listings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    seller_username TEXT NOT NULL,
+    plant_name TEXT NOT NULL,
+    price REAL NOT NULL,
+    quantity INTEGER NOT NULL,
+    category TEXT NOT NULL,
+    description TEXT,
+    location TEXT,
+    delivery TEXT,
+    date_listed TEXT NOT NULL
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS listings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    seller_username TEXT NOT NULL,
+    plant_name TEXT NOT NULL,
+    price REAL NOT NULL,
+    quantity INTEGER NOT NULL,
+    category TEXT NOT NULL,
+    description TEXT,
+    location TEXT,
+    delivery TEXT,
+    date_listed TEXT NOT NULL,
+    status TEXT DEFAULT 'Available'
+)
+""")
+
 conn.commit()
 conn.close()
 print("Database aur tables ban gaye!")
