@@ -23,7 +23,7 @@
         <p class="tagline">Smart Fertilizer Advisor</p>
 
         {% if session.username %}
-            <a href="/upload" class="btn btn-small">📷 Upload Photo</a>
+            <a href="/upload" class="btn btn-small">📷 Start Diagnosis</a>
 
             {% if stats %}
             <div class="stats-row">
@@ -73,6 +73,15 @@
     </div>
     {% endif %}
 
+    <div class="quick-card">
+        <h3>🤖 AI Plant Assistant</h3>
+        <div id="chatBox" style="height:100px; overflow-y:auto; text-align:left; font-size:12.5px; margin-bottom:8px; padding:6px;">
+            <p style="color:#8a9990;">Ask me anything!</p>
+        </div>
+        <input type="text" id="chatInput" placeholder="Type your question..." style="margin-top:0;" onkeypress="if(event.key==='Enter'){sendChat();}">
+        <button onclick="sendChat()" class="btn btn-small" style="width:100%;">Ask</button>
+    </div>
+
 </div>
 
 <div class="features-row">
@@ -101,5 +110,26 @@ setInterval(() => {
     current = (current + 1) % slides.length;
     slides[current].classList.add("active");
 }, 3000);
+
+function sendChat() {
+    const input = document.getElementById("chatInput");
+    const question = input.value.trim();
+    if (!question) return;
+
+    const chatBox = document.getElementById("chatBox");
+    chatBox.innerHTML += `<p><strong>You:</strong> ${question}</p>`;
+    input.value = "";
+
+    fetch("/ai-chat", {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: "question=" + encodeURIComponent(question)
+    })
+    .then(res => res.json())
+    .then(data => {
+        chatBox.innerHTML += `<p style="color:#1b5e20;"><strong>🌿 AI:</strong> ${data.answer}</p>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+}
 </script>
 {% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="max-width:600px;">
+    <h1>📦 My Orders</h1>
+
+    {% if orders %}
+        {% for order in orders %}
+        <div class="history-item">
+            <div>
+                <p><strong>{{ order[0] }}</strong> — ₹{{ order[1] }}</p>
+                <p class="small-text">Delivered to: {{ order[4] }}</p>
+                <p class="small-text">Phone: {{ order[3] }}</p>
+                <p class="small-text">Ordered on: {{ order[5] }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>You haven't placed any orders yet.</p>
+        <a href="/store" class="btn">Browse Plants</a>
+    {% endif %}
+</div>
+{% endblock %}

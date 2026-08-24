@@ -1,4 +1,5 @@
 import requests
+from model.assistant_ai import get_answer
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, session
 import sqlite3
@@ -434,6 +435,29 @@ def toggle_listing_status(listing_id):
     conn.close()
 
     return redirect("/my-listings")
+@app.route("/ai-chat", methods=["POST"])
+def ai_chat():
+    if "username" not in session:
+        return {"answer": "🔒 Please login to use the AI Assistant.", "logged_in": False}
+
+    question = request.form.get("question", "")
+    answer = get_answer(question)
+    return {"answer": answer, "logged_in": True}
+@app.route("/my-orders")
+def my_orders():
+    if "username" not in session:
+        return redirect("/login")
+
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT plant_name, price, buyer_name, phone, address, order_date FROM orders WHERE username = ? ORDER BY id DESC",
+        (session["username"],)
+    )
+    orders = cursor.fetchall()
+    conn.close()
+
+    return render_template("my_orders.html", orders=orders)
 
 if __name__ == "__main__":
     app.run(debug=True)
