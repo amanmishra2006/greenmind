@@ -1,5 +1,4 @@
 import requests
-from model.assistant_ai import get_answer
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, session
 import sqlite3
@@ -9,6 +8,7 @@ from model.predict import predict_plant
 from model.recommendations import recommendations
 from model.soil_logic import analyze_soil
 from model.store_data import plants_data, categories
+from model.assistant_ai import get_answer
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "static/uploads"
@@ -54,6 +54,29 @@ def get_weather():
         }
     except Exception:
         return None
+def save_address(username, buyer_name, phone, address_line1, address_line2, landmark, city, state, pincode):
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO saved_addresses (username, buyer_name, phone, address_line1, address_line2, landmark, city, state, pincode)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(username) DO UPDATE SET
+            buyer_name=excluded.buyer_name, phone=excluded.phone, address_line1=excluded.address_line1,
+            address_line2=excluded.address_line2, landmark=excluded.landmark, city=excluded.city,
+            state=excluded.state, pincode=excluded.pincode
+    """, (username, buyer_name, phone, address_line1, address_line2, landmark, city, state, pincode))
+    conn.commit()
+    conn.close()
+
+def get_saved_address(username):
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT buyer_name, phone, address_line1, address_line2, landmark, city, state, pincode FROM saved_addresses WHERE username = ?", (username,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return {"buyer_name": row[0], "phone": row[1], "address_line1": row[2], "address_line2": row[3], "landmark": row[4], "city": row[5], "state": row[6], "pincode": row[7]}
+    return None
 
 @app.route("/")
 def home():
@@ -167,7 +190,8 @@ def result():
         condition=condition,
         confidence=confidence_percent,
         fertilizer=info["fertilizer"],
-        watering=info["watering"]
+        watering=info["watering"],
+        bg_image="images/result-bg.png"
     )
 
 @app.route("/history")
@@ -242,9 +266,6 @@ def soil():
     return render_template("soil.html", recommendations=recommendations_result, disclaimer=disclaimer, bg_image=bg_image)
 
 @app.route("/store")
-@app.route("/store")
-@app.route("/store")
-@app.route("/store")
 def store():
     if "username" not in session:
         return redirect("/login")
@@ -277,7 +298,8 @@ def store():
             "is_user_listing": True
         })
 
-    return render_template("store.html", plants=plants_with_images, categories=categories)
+    bg_image = get_plant_image("plant nursery garden shop")
+    return render_template("store.html", plants=plants_with_images, categories=categories, bg_image=bg_image)
 
 @app.route("/cart/add/<int:plant_id>")
 def add_to_cart(plant_id):
@@ -292,6 +314,21 @@ def add_to_cart(plant_id):
     session["cart"] = cart
 
     return redirect("/store")
+
+@app.route("/cart/remove/<item_id>")
+def remove_from_cart(item_id):
+    if "username" not in session:
+        return redirect("/login")
+
+    cart = session.get("cart", [])
+    new_cart = []
+    for cid in cart:
+        if str(cid) != str(item_id):
+            new_cart.append(cid)
+    session["cart"] = new_cart
+    session.modified = True
+
+    return redirect("/cart")
 
 @app.route("/wishlist/add/<int:plant_id>")
 def add_to_wishlist(plant_id):
@@ -314,10 +351,80 @@ def view_cart():
         return redirect("/login")
 
     cart_ids = session.get("cart", [])
-    cart_items = [p for p in plants_data if p["id"] in cart_ids]
-    total = sum(p["price"] for p in cart_items)
+    cart_items = []
 
-    return render_template("cart.html", items=cart_items, total=total)
+    for cid in cart_ids:
+        if str(cid).startswith("user_"):
+            listing_id = int(str(cid).replace("user_", ""))
+            conn = sqlite3.connect("database.db")
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, plant_name, price FROM listings WHERE id = ?", (listing_id,))
+            row = cursor.fetchone()
+            conn.close()
+            if row:
+                cart_items.append({"id": cid, "name": row[1], "price": row[2]})
+        else:
+            plant = next((p for p in plants_data if p["id"] == cid), None)
+            if plant:
+                cart_items.append({"id": plant["id"], "name": plant["name"], "price": plant["price"]})
+
+    return render_template("cart.html", items=cart_items)
+
+@app.route("/cart/checkout", methods=["POST"])
+def cart_checkout():
+    if "username" not in session:
+        return redirect("/login")
+
+    selected_ids = request.form.getlist("selected_items")
+    buyer_name = request.form["buyer_name"]
+    phone = request.form["phone"]
+    address_line1 = request.form["address_line1"]
+    address_line2 = request.form["address_line2"]
+    landmark = request.form.get("landmark", "")
+    city = request.form["city"]
+    state = request.form["state"]
+    pincode = request.form["pincode"]
+    address = f"{address_line1}, {address_line2}"
+    if landmark:
+        address += f" (Near {landmark})"
+    address += f", {city}, {state} - {pincode}"
+    save_address(session["username"], buyer_name, phone, address_line1, address_line2, landmark, city, state, pincode)
+
+    cart_ids = session.get("cart", [])
+    ordered_plants = []
+
+    for cid in selected_ids:
+        if cid.startswith("user_"):
+            listing_id = int(cid.replace("user_", ""))
+            conn = sqlite3.connect("database.db")
+            cursor = conn.cursor()
+            cursor.execute("SELECT plant_name, price FROM listings WHERE id = ?", (listing_id,))
+            row = cursor.fetchone()
+            conn.close()
+            if row:
+                ordered_plants.append({"name": row[0], "price": row[1]})
+        else:
+            plant = next((p for p in plants_data if p["id"] == int(cid)), None)
+            if plant:
+                ordered_plants.append({"name": plant["name"], "price": plant["price"]})
+
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    total = 0
+    for p in ordered_plants:
+        cursor.execute(
+            "INSERT INTO orders (username, plant_name, price, buyer_name, phone, address, order_date) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (session["username"], p["name"], p["price"], buyer_name, phone, address, datetime.now().strftime("%d-%m-%Y %H:%M"))
+        )
+        total += p["price"]
+    conn.commit()
+    conn.close()
+
+    remaining_cart = [cid for cid in cart_ids if str(cid) not in selected_ids]
+    session["cart"] = remaining_cart
+    session.modified = True
+
+    return render_template("cart_confirmation.html", ordered_plants=ordered_plants, total=total, buyer_name=buyer_name)
 
 @app.route("/checkout/<plant_id>", methods=["GET", "POST"])
 def checkout(plant_id):
@@ -327,12 +434,13 @@ def checkout(plant_id):
     is_user_listing = str(plant_id).startswith("user_")
     plant = None
     available_qty = 0
+    listing_id = None
 
     if is_user_listing:
         listing_id = int(str(plant_id).replace("user_", ""))
         conn = sqlite3.connect("database.db")
         cursor = conn.cursor()
-        cursor.execute("SELECT id, plant_name, price, quantity, seller_username FROM listings WHERE id = ?", (listing_id,))
+        cursor.execute("SELECT id, plant_name, price, quantity FROM listings WHERE id = ?", (listing_id,))
         row = cursor.fetchone()
         conn.close()
         if row:
@@ -350,8 +458,19 @@ def checkout(plant_id):
     if request.method == "POST":
         buyer_name = request.form["buyer_name"]
         phone = request.form["phone"]
-        address = request.form["address"]
+        address_line1 = request.form["address_line1"]
+        address_line2 = request.form["address_line2"]
+        landmark = request.form.get("landmark", "")
+        city = request.form["city"]
+        state = request.form["state"]
+        pincode = request.form["pincode"]
+        address = f"{address_line1}, {address_line2}"
+        if landmark:
+            address += f" (Near {landmark})"
+        address += f", {city}, {state} - {pincode}"
         order_qty = int(request.form["order_qty"])
+
+        save_address(session["username"], buyer_name, phone, address_line1, address_line2, landmark, city, state, pincode)
 
         if order_qty > available_qty:
             error = f"Only {available_qty} unit(s) available. Please choose a lower quantity."
@@ -372,7 +491,8 @@ def checkout(plant_id):
 
             return render_template("order_confirmation.html", plant=plant, buyer_name=buyer_name, order_qty=order_qty)
 
-    return render_template("checkout.html", plant=plant, available_qty=available_qty, error=error)
+    saved = get_saved_address(session["username"])
+    return render_template("checkout.html", plant=plant, available_qty=available_qty, error=error, saved=saved)
 
 @app.route("/sell", methods=["GET", "POST"])
 def sell():
@@ -400,7 +520,8 @@ def sell():
 
         message = "Thank you! Your plant listing has been submitted successfully."
 
-    return render_template("sell.html", message=message)
+    bg_image = get_plant_image("plant nursery garden shop")
+    return render_template("sell.html", message=message, bg_image=bg_image)
 
 @app.route("/my-listings")
 def my_listings():
@@ -418,7 +539,6 @@ def my_listings():
 
     return render_template("my_listings.html", listings=listings)
 
-
 @app.route("/listing/toggle-status/<int:listing_id>")
 def toggle_listing_status(listing_id):
     if "username" not in session:
@@ -435,14 +555,7 @@ def toggle_listing_status(listing_id):
     conn.close()
 
     return redirect("/my-listings")
-@app.route("/ai-chat", methods=["POST"])
-def ai_chat():
-    if "username" not in session:
-        return {"answer": "🔒 Please login to use the AI Assistant.", "logged_in": False}
 
-    question = request.form.get("question", "")
-    answer = get_answer(question)
-    return {"answer": answer, "logged_in": True}
 @app.route("/my-orders")
 def my_orders():
     if "username" not in session:
@@ -458,6 +571,15 @@ def my_orders():
     conn.close()
 
     return render_template("my_orders.html", orders=orders)
+
+@app.route("/ai-chat", methods=["POST"])
+def ai_chat():
+    if "username" not in session:
+        return {"answer": "🔒 Please login to use the AI Assistant.", "logged_in": False}
+
+    question = request.form.get("question", "")
+    answer = get_answer(question)
+    return {"answer": answer, "logged_in": True}
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -3,7 +3,10 @@
 <div class="page-bg" style="background-image: url('{{ url_for('static', filename='images/store-bg.png') }}');"></div>
 <div class="store-hero">
     <h1>🛒 GreenMarket</h1>    <p>Bring nature home — discover beautiful plants from local gardeners.</p>
+    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
     <a href="/sell" class="btn">🌱 Sell Your Plant</a>
+    <a href="/cart" class="btn" style="background:white; color:var(--forest); border:2px solid var(--accent);">🛒 View Cart</a>
+</div>
 </div>
 
 <div class="store-controls">

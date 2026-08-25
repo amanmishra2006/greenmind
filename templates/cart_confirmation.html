@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="max-width:500px;">
+    <h1>✅ Order Placed!</h1>
+    <p>Thank you, {{ buyer_name }}! Your order has been placed successfully.</p>
+
+    <div class="assistant-answer" style="text-align:left;">
+        {% for p in ordered_plants %}
+        <p>🌿 {{ p.name }} — ₹{{ p.price }}</p>
+        {% endfor %}
+        <h3 style="margin-top:12px;">Total: ₹{{ total }}</h3>
+    </div>
+
+    <a href="/store" class="btn">Continue Shopping</a>
+</div>
+{% endblock %}
