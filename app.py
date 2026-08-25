@@ -1,4 +1,8 @@
 import requests
+import time
+
+_cache = {"weather": None, "weather_time": 0, "images": {}, "images_time": {}}
+CACHE_DURATION = 600  # 10 minutes
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, session
 import sqlite3
@@ -31,29 +35,41 @@ def get_current_season():
         return "Winter"
 
 def get_plant_image(plant_name):
+    now = time.time()
+    if plant_name in _cache["images"] and (now - _cache["images_time"].get(plant_name, 0)) < CACHE_DURATION:
+        return _cache["images"][plant_name]
     try:
         url = f"https://pixabay.com/api/?key={PIXABAY_API_KEY}&q={plant_name}+plant&image_type=photo&per_page=3"
         response = requests.get(url, timeout=5)
         data = response.json()
         if data["hits"]:
-            return data["hits"][0]["webformatURL"]
+            image_url = data["hits"][0]["webformatURL"]
+            _cache["images"][plant_name] = image_url
+            _cache["images_time"][plant_name] = now
+            return image_url
     except Exception:
         pass
-    return "https://via.placeholder.com/300x200?text=No+Image"
+    return _cache["images"].get(plant_name, "https://via.placeholder.com/300x200?text=No+Image")
 
 def get_weather():
+    now = time.time()
+    if _cache["weather"] and (now - _cache["weather_time"]) < CACHE_DURATION:
+        return _cache["weather"]
     try:
         url = "https://api.open-meteo.com/v1/forecast?latitude=28.6139&longitude=77.2090&current=temperature_2m,relative_humidity_2m,precipitation&timezone=Asia%2FKolkata"
         response = requests.get(url, timeout=5)
         data = response.json()
         current = data["current"]
-        return {
+        weather = {
             "temp": current["temperature_2m"],
             "humidity": current["relative_humidity_2m"],
             "rain": current["precipitation"]
         }
+        _cache["weather"] = weather
+        _cache["weather_time"] = now
+        return weather
     except Exception:
-        return None
+        return _cache["weather"]
 def save_address(username, buyer_name, phone, address_line1, address_line2, landmark, city, state, pincode):
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
