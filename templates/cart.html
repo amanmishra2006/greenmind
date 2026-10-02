@@ -3,6 +3,7 @@
 <div class="page-bg" style="background-image: url('{{ url_for('static', filename='images/cart-bg.png') }}');"></div>
 <div class="container" style="max-width:600px;">
     <h1>🛍️ Your Cart</h1>
+    {% if request.args.get('error') %}<p class="auth-message" role="alert">{{ request.args.get('error') }}</p>{% endif %}
 
     {% if items %}
     <form method="POST" action="/cart/checkout" style="text-align:left;">

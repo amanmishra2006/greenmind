@@ -22,6 +22,44 @@
         </div>
     </div>
 
+    <section class="admin-review-section" aria-labelledby="listingReviewHeading">
+        <div class="admin-review-heading">
+            <div>
+                <p class="home-card-label">MARKETPLACE MODERATION</p>
+                <h2 id="listingReviewHeading">Seller listings awaiting review</h2>
+            </div>
+            <span class="admin-pending-count">{{ pending_listings|length }} pending</span>
+        </div>
+        {% if pending_listings %}
+            {% for listing in pending_listings %}
+            <article class="admin-listing-review">
+                {% if listing[10] %}
+                <img src="{{ url_for('static', filename='uploads/listings/' + listing[10]) }}" alt="{{ listing[2] }}">
+                {% else %}
+                <div class="admin-listing-placeholder" aria-hidden="true">🌱</div>
+                {% endif %}
+                <div class="admin-listing-details">
+                    <p class="admin-listing-seller">Submitted by {{ listing[1] }} · {{ listing[9] }}</p>
+                    <h3>{{ listing[2] }}</h3>
+                    <p>₹{{ listing[3] }} · {{ listing[4] }} available · {{ listing[5] }}</p>
+                    <p>{{ listing[6] or 'No description provided.' }}</p>
+                    <p class="small-text">{{ listing[7] or 'Location not provided' }} · {{ listing[8] or 'Delivery details not provided' }}</p>
+                </div>
+                <div class="admin-review-actions">
+                    <form method="POST" action="/admin/listings/{{ listing[0] }}/approve">
+                        <button class="btn admin-approve-btn" type="submit">Approve for Store</button>
+                    </form>
+                    <form method="POST" action="/admin/listings/{{ listing[0] }}/reject">
+                        <button class="admin-reject-btn" type="submit">Reject</button>
+                    </form>
+                </div>
+            </article>
+            {% endfor %}
+        {% else %}
+            <p class="admin-no-pending">No seller listings need review right now.</p>
+        {% endif %}
+    </section>
+
     <h3 style="margin-top:30px;">Recent Scans</h3>
     {% for scan in recent_scans %}
     <div class="history-item">

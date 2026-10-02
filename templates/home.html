@@ -1,115 +1,147 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="season-effect season-{{ season|lower }}">
-    {% if season == "Monsoon" %}
-        {% for i in range(25) %}
-        <div class="drop" style="left: {{ (i * 4) % 100 }}%; animation-duration: {{ 0.6 + (i % 5) * 0.15 }}s; animation-delay: {{ (i % 7) * 0.2 }}s;"></div>
-        {% endfor %}
-    {% endif %}
-</div>
-
-<div class="hero-banner">
-    <img src="{{ farmer_image }}" alt="Farming">
-    <div class="hero-overlay">
-        <h1>🌿 GreenMind</h1>
-        <p>AI-Powered Plant Health & Fertilizer Advisor</p>
-    </div>
-</div>
-
-<div class="home-grid">
-
-    <div class="quick-card">
-        <h2>Quick Diagnosis</h2>
-        <p class="tagline">Smart Fertilizer Advisor</p>
-
-        {% if session.username %}
-            <a href="/upload" class="btn btn-small">📷 Start Diagnosis</a>
-
-            {% if stats %}
-            <div class="stats-row">
-                <div class="stat-box">
-                    <span class="stat-number">{{ stats.total }}</span>
-                    <span class="stat-label">Total Scans</span>
-                </div>
-                <div class="stat-box healthy">
-                    <span class="stat-number">{{ stats.healthy }}</span>
-                    <span class="stat-label">Healthy</span>
-                </div>
-                <div class="stat-box issue">
-                    <span class="stat-number">{{ stats.issues }}</span>
-                    <span class="stat-label">Need Attention</span>
-                </div>
-            </div>
-            {% endif %}
-        {% else %}
-            <p class="small-text">Upload a plant photo and instantly know its health.</p>
-            <a href="/login" class="btn btn-small">Login to Get Started</a>
-            <p class="small-text">New here? <a href="/register">Register here</a></p>
+<main class="home-page">
+    <div class="season-effect season-{{ season|lower }}" aria-hidden="true">
+        {% if season == "Monsoon" %}
+            {% for i in range(25) %}
+            <div class="drop" style="left: {{ (i * 4) % 100 }}%; animation-duration: {{ 0.6 + (i % 5) * 0.15 }}s; animation-delay: {{ (i % 7) * 0.2 }}s;"></div>
+            {% endfor %}
         {% endif %}
     </div>
 
-    <div class="quick-card">
-        <h3>🌱 {{ season }} Season — What's Growing Now</h3>
-        <div class="slideshow-box">
-            {% for item in plant_images %}
-            <div class="slide {% if loop.first %}active{% endif %}">
-                <img src="{{ item.image }}">
-                <p>{{ item.name }}</p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    {% if weather %}
-    <div class="quick-card">
-        <h3>🌦️ Current Weather</h3>
-        <div class="weather-box">
-            <span class="weather-temp">{{ weather.temp }}°C</span>
-            <div class="weather-details">
-                <p>💧 Humidity: {{ weather.humidity }}%</p>
-                <p>🌧️ Rain: {{ weather.rain }} mm</p>
+    <section class="hero-banner">
+        <img src="{{ farmer_image }}" alt="Lush green fern leaves filling the frame" onerror="this.onerror=null;this.src='/static/images/store-bg.png';">
+        <div class="hero-overlay">
+            <div class="hero-copy">
+                <p class="home-eyebrow">A smarter growing season starts here</p>
+                <h1>GreenMind</h1>
+                <p>Understand plant health, plan your next step, and grow with confidence.</p>
+                <div class="hero-actions">
+                    {% if session.username %}
+                    <a href="/upload" class="btn">Start a plant diagnosis <span aria-hidden="true">→</span></a>
+                    <a href="/store" class="btn btn-marketplace">Browse GreenMarket <span aria-hidden="true">→</span></a>
+                    <a href="/assistant" class="hero-secondary-link">Ask the plant assistant</a>
+                    {% else %}
+                    <a href="/register" class="btn">Create your free account <span aria-hidden="true">→</span></a>
+                    <a href="/store" class="btn btn-marketplace">Browse GreenMarket <span aria-hidden="true">→</span></a>
+                    <a href="/login" class="hero-secondary-link">Already have an account? Sign in</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
-    </div>
-    {% endif %}
+    </section>
 
-    <div class="quick-card">
-        <h3>🤖 AI Plant Assistant</h3>
-        <div id="chatBox" style="height:100px; overflow-y:auto; text-align:left; font-size:12.5px; margin-bottom:8px; padding:6px;">
-            <p style="color:#8a9990;">Ask me anything!</p>
+    <section class="home-section" aria-label="Plant care tools">
+        <header class="home-section-heading">
+            <p class="home-eyebrow">YOUR GROWING TOOLKIT</p>
+            <h2>Good care begins with a clear next step.</h2>
+        </header>
+        <div class="home-grid">
+            <article class="quick-card diagnosis-card">
+                <p class="home-card-label">PLANT HEALTH</p>
+                <h2>Quick diagnosis</h2>
+                <p class="tagline">Know what your plant may need</p>
+                {% if session.username %}
+                    <a href="/upload" class="btn btn-small">Upload a plant photo <span aria-hidden="true">→</span></a>
+                    {% if stats %}
+                    <div class="stats-row">
+                        <div class="stat-box"><span class="stat-number">{{ stats.total }}</span><span class="stat-label">Total scans</span></div>
+                        <div class="stat-box healthy"><span class="stat-number">{{ stats.healthy }}</span><span class="stat-label">Healthy</span></div>
+                        <div class="stat-box issue"><span class="stat-number">{{ stats.issues }}</span><span class="stat-label">Need attention</span></div>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <p class="small-text">Upload a clear plant photo to receive a health assessment and care recommendations.</p>
+                    <a href="/login" class="btn btn-small">Sign in to diagnose <span aria-hidden="true">→</span></a>
+                    <p class="small-text">New to GreenMind? <a href="/register">Create an account</a></p>
+                {% endif %}
+            </article>
+
+            <article class="quick-card store-card">
+                <p class="home-card-label">GREENMARKET</p>
+                <h3>Find your next plant</h3>
+                <p class="small-text">Explore indoor favourites, flowering plants, and listings from local growers.</p>
+                <a href="/store" class="btn btn-small">Browse the store <span aria-hidden="true">→</span></a>
+                {% if session.username %}
+                <a href="/sell" class="assistant-page-link">Sell a plant <span aria-hidden="true">↗</span></a>
+                {% endif %}
+            </article>
+
+            <article class="quick-card season-card">
+                <p class="home-card-label">IN SEASON</p>
+                <h3>{{ season }} growing guide</h3>
+                <div class="slideshow-box">
+                    {% for item in plant_images %}
+                    <div class="slide {% if loop.first %}active{% endif %}">
+                        <img src="{{ item.image }}" alt="{{ item.name }}" onerror="this.onerror=null;this.src='/static/images/hero.png';">
+                        <p>{{ item.name }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </article>
+
+            <article class="quick-card assistant-card">
+                <p class="home-card-label">PERSONAL PLANT CARE</p>
+                <h3>Talk it through with GreenMind</h3>
+                <p class="small-text">Ask about watering, soil, nutrition, or your latest diagnosis.</p>
+                <a class="assistant-page-link" href="/assistant">Open the AI assistant <span aria-hidden="true">→</span></a>
+                <div id="chatBox" class="home-chat-box" aria-live="polite"><p>Have a quick question?</p></div>
+                <label class="visually-hidden" for="chatInput">Ask a plant care question</label>
+                <input type="text" id="chatInput" placeholder="Ask a quick question..." onkeypress="if(event.key==='Enter'){sendChat();}">
+                <button onclick="sendChat()" class="btn btn-small home-chat-submit">Ask GreenMind <span aria-hidden="true">↑</span></button>
+            </article>
+
+            {% if weather %}
+            <article class="quick-card weather-card">
+                <p class="home-card-label">LOCAL CONDITIONS</p>
+                <h3>Today's weather</h3>
+                <div class="weather-box">
+                    <span class="weather-temp">{{ weather.temp }}<small>°C</small></span>
+                    <div class="weather-details">
+                        <p>Humidity <strong>{{ weather.humidity }}%</strong></p>
+                        <p>Rainfall <strong>{{ weather.rain }} mm</strong></p>
+                    </div>
+                </div>
+            </article>
+            {% endif %}
         </div>
-        <input type="text" id="chatInput" placeholder="Type your question..." style="margin-top:0;" onkeypress="if(event.key==='Enter'){sendChat();}">
-        <button onclick="sendChat()" class="btn btn-small" style="width:100%;">Ask</button>
-    </div>
+    </section>
 
-</div>
-
-<div class="features-row">
-    <div class="feature-item">
-        <span class="feature-icon">🔍</span>
-        <h3>Scan with Confidence</h3>
-        <p class="small-text">AI-powered diagnosis backed by real plant image training.</p>
-    </div>
-    <div class="feature-item">
-        <span class="feature-icon">🌦️</span>
-        <h3>Plan Around Seasons</h3>
-        <p class="small-text">Know what's growing well right now in your region.</p>
-    </div>
-    <div class="feature-item">
-        <span class="feature-icon">📈</span>
-        <h3>Track Your Progress</h3>
-        <p class="small-text">Every scan saved to your personal history dashboard.</p>
-    </div>
-</div>
+    <section class="features-section">
+        <header class="home-section-heading">
+            <p class="home-eyebrow">FROM QUESTION TO ACTION</p>
+            <h2>Everything you need to care for what you grow.</h2>
+        </header>
+        <div class="features-row">
+            <article class="feature-item">
+                <span class="feature-icon" aria-hidden="true">⌕</span>
+                <h3>Scan with confidence</h3>
+                <p class="small-text">AI-powered diagnosis backed by real plant image training.</p>
+            </article>
+            <article class="feature-item">
+                <span class="feature-icon" aria-hidden="true">↟</span>
+                <h3>Plan around seasons</h3>
+                <p class="small-text">Know what's growing well right now in your region.</p>
+            </article>
+            <article class="feature-item">
+                <span class="feature-icon" aria-hidden="true">▤</span>
+                <h3>Track your progress</h3>
+                <p class="small-text">Every scan saved to your personal history dashboard.</p>
+            </article>
+        </div>
+    </section>
+</main>
 
 <script>
-let slides = document.querySelectorAll(".slide");
+const slides = document.querySelectorAll(".slide");
 let current = 0;
-setInterval(() => {
-    slides[current].classList.remove("active");
-    current = (current + 1) % slides.length;
-    slides[current].classList.add("active");
-}, 3000);
+if (slides.length > 1) {
+    setInterval(() => {
+        slides[current].classList.remove("active");
+        current = (current + 1) % slides.length;
+        slides[current].classList.add("active");
+    }, 3000);
+}
 
 function sendChat() {
     const input = document.getElementById("chatInput");
@@ -117,7 +149,9 @@ function sendChat() {
     if (!question) return;
 
     const chatBox = document.getElementById("chatBox");
-    chatBox.innerHTML += `<p><strong>You:</strong> ${question}</p>`;
+    const questionLine = document.createElement("p");
+    questionLine.textContent = `You: ${question}`;
+    chatBox.append(questionLine);
     input.value = "";
 
     fetch("/ai-chat", {
@@ -127,8 +161,15 @@ function sendChat() {
     })
     .then(res => res.json())
     .then(data => {
-        chatBox.innerHTML += `<p style="color:#1b5e20;"><strong>🌿 AI:</strong> ${data.answer}</p>`;
+        const answerLine = document.createElement("p");
+        answerLine.textContent = `GreenMind: ${data.answer}`;
+        chatBox.append(answerLine);
         chatBox.scrollTop = chatBox.scrollHeight;
+    })
+    .catch(() => {
+        const errorLine = document.createElement("p");
+        errorLine.textContent = "GreenMind could not connect. Please try again.";
+        chatBox.append(errorLine);
     });
 }
 </script>

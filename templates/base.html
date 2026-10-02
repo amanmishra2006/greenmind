@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>GreenMind</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0d3b24">
+    <title>{% block title %}GreenMind | Plant Care{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -14,6 +17,7 @@
         <a href="/">🌿 GreenMind</a>
         <div class="nav-links">
             <a href="/">Home</a>
+            <a href="/assistant">AI Assistant</a>
             {% if session.username %}
                 <a href="/store">Store</a>
                 <span class="nav-user">Hi, {{ session.username }}</span>
@@ -28,21 +32,26 @@
 
     <div id="sideMenu" class="side-menu">
         <button class="close-btn" onclick="toggleMenu()">✕</button>
+        <span class="menu-section-heading">START</span>
         <a href="/">Home</a>
+        <a href="/assistant">AI Assistant</a>
         {% if session.username %}
-            <a href="/upload">Upload</a>
+            <span class="menu-section-heading">PLANT CARE</span>
+            <a href="/upload">Diagnosis</a>
+            <a href="/history">History</a>
+            <span class="menu-section-heading">MARKETPLACE</span>
             <a href="/store">Store</a>
             <a href="/cart">Cart {% if cart_count %}({{ cart_count }}){% endif %}</a>
             <a href="/my-listings">My Listings</a>
             <a href="/my-orders">My Orders</a>
-            <a href="/soil">Soil</a>
-            <a href="/history">History</a>
+            <span class="menu-section-heading">ACCOUNT</span>
             {% if session.username == "amanmishra" %}
-                <a href="/admin">Admin</a>
+                <a href="/admin">Admin{% if pending_listing_count %}<span class="menu-notice-count">{{ pending_listing_count }}</span>{% endif %}</a>
             {% endif %}
             <span class="nav-user">Hi, {{ session.username }}</span>
             <a href="/logout">Logout</a>
         {% else %}
+            <span class="menu-section-heading">ACCOUNT</span>
             <a href="/login">Login</a>
             <a href="/register">Register</a>
         {% endif %}

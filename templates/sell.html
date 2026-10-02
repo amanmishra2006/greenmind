@@ -7,17 +7,21 @@
     style="background-image: url('{{ url_for('static', filename='images/store-bg.png') }}');"
 ></div>
 
-<div class="container" style="max-width: 520px;">
+<main class="sell-page">
+<section class="sell-panel">
+    <header class="sell-heading">
+        <p class="home-card-label">COMMUNITY MARKETPLACE</p>
+        <h1>List a plant for GreenMarket</h1>
+        <p>Share a healthy plant with another grower. Your listing will be reviewed before it appears in the store.</p>
+    </header>
 
-    <h1>🌱 Sell Your Plant</h1>
+    <div class="sell-workflow">
+        <span><b>01</b> Add details</span>
+        <span><b>02</b> Admin review</span>
+        <span><b>03</b> Go live</span>
+    </div>
 
-    <p>
-        Fill in the details below to list your plant on GreenMarket
-    </p>
-
-    <a href="/my-listings" class="btn" style="margin-bottom: 10px;">
-        📋 View My Listings
-    </a>
+    <a href="/my-listings" class="sell-listings-link">View your listings <span aria-hidden="true">→</span></a>
 
     <form
         method="POST"
@@ -34,6 +38,7 @@
             name="plant_photo"
             accept="image/*"
         >
+        <span class="sell-field-note">Optional · JPG, PNG, WEBP, or AVIF</span>
 
 
         <label
@@ -62,6 +67,7 @@
             type="text"
             name="price"
             placeholder="e.g. 250"
+            inputmode="decimal"
             required
         >
 
@@ -77,6 +83,7 @@
             type="text"
             name="quantity"
             placeholder="e.g. 10"
+            inputmode="numeric"
             required
         >
 
@@ -165,8 +172,8 @@
 
         <div style="text-align: center;">
 
-            <button type="submit" class="btn">
-                Submit Listing
+            <button type="submit" class="btn sell-submit">
+                Submit for admin review <span aria-hidden="true">→</span>
             </button>
 
         </div>
@@ -184,6 +191,7 @@
 
     {% endif %}
 
-</div>
+</section>
+</main>
 
 {% endblock %}

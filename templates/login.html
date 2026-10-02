@@ -1,13 +1,28 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container">
-    <h1>🌿 Login</h1>
-    <form method="POST">
-        <input type="text" name="username" placeholder="Username" required><br><br>
-        <input type="password" name="password" placeholder="Password" required><br><br>
-        <button type="submit" class="btn">Login</button>
-    </form>
-    <p>{{ message }}</p>
-    <a href="/register">New user? Register</a>
-</div>
+<main class="auth-page">
+    <section class="auth-panel">
+        <div class="auth-brand-mark" aria-hidden="true">G</div>
+        <p class="auth-eyebrow">WELCOME BACK</p>
+        <h1>Pick up where your garden left off.</h1>
+        <p class="auth-intro">Sign in to see your plant history, get a diagnosis, and continue your growing journey.</p>
+        {% if message %}<p class="auth-message" role="alert">{{ message }}</p>{% endif %}
+        <form class="auth-form" method="POST">
+            <label for="username">Username</label>
+            <input id="username" type="text" name="username" placeholder="Your username" autocomplete="username" required>
+            <label for="password">Password</label>
+            <input id="password" type="password" name="password" placeholder="Your password" autocomplete="current-password" required>
+            <button type="submit" class="btn auth-submit">Sign in <span aria-hidden="true">→</span></button>
+        </form>
+        <p class="auth-switch">New to GreenMind? <a href="/register">Create an account</a></p>
+        <a class="auth-home-link" href="/">← Back to home</a>
+    </section>
+    <aside class="auth-aside">
+        <p class="auth-aside-label">A BETTER READ ON YOUR GARDEN</p>
+        <blockquote>“Small observations make for stronger growing.”</blockquote>
+        <p>Bring your plant questions, seasonal plans, and diagnosis history together in one place.</p>
+        <div class="auth-aside-rule"></div>
+        <span>PLANT HEALTH · SEASONAL GROWING · PRACTICAL CARE</span>
+    </aside>
+</main>
 {% endblock %}

@@ -7,10 +7,11 @@
         {% for order in orders %}
         <div class="history-item">
             <div>
-                <p><strong>{{ order[0] }}</strong> — ₹{{ order[1] }}</p>
-                <p class="small-text">Delivered to: {{ order[4] }}</p>
-                <p class="small-text">Phone: {{ order[3] }}</p>
-                <p class="small-text">Ordered on: {{ order[5] }}</p>
+                <p class="order-reference">ORDER #{{ order[0] }} · {{ order[7] }}</p>
+                <p><strong>{{ order[1] }}</strong> — ₹{{ order[2] }}</p>
+                <p class="small-text">Delivering to: {{ order[5] }}</p>
+                <p class="small-text">Phone: {{ order[4] }}</p>
+                <p class="small-text">Placed on: {{ order[6] }}</p>
             </div>
         </div>
         {% endfor %}

@@ -4,11 +4,12 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, session
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 import os
+from uuid import uuid4
 
 from model.predict import predict_plant
 from model.recommendations import recommendations
-from model.soil_logic import analyze_soil
 from model.store_data import plants_data, categories
 from model.assistant_ai import get_answer
 
@@ -32,6 +33,77 @@ _cache = {
 }
 
 CACHE_DURATION = 600  # 10 minutes
+
+
+def ensure_marketplace_schema(connection):
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS listings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            seller_username TEXT NOT NULL,
+            plant_name TEXT NOT NULL,
+            price REAL NOT NULL,
+            quantity INTEGER NOT NULL,
+            category TEXT NOT NULL,
+            description TEXT,
+            location TEXT,
+            delivery TEXT,
+            date_listed TEXT NOT NULL,
+            status TEXT DEFAULT 'Available'
+        )
+        """
+    )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            plant_name TEXT NOT NULL,
+            price REAL NOT NULL,
+            buyer_name TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            address TEXT NOT NULL,
+            order_date TEXT NOT NULL
+        )
+        """
+    )
+
+    listing_columns = {
+        column[1]
+        for column in connection.execute("PRAGMA table_info(listings)")
+    }
+    if "approval_status" not in listing_columns:
+        connection.execute(
+            "ALTER TABLE listings ADD COLUMN approval_status TEXT NOT NULL DEFAULT 'Approved'"
+        )
+    if "image_filename" not in listing_columns:
+        connection.execute(
+            "ALTER TABLE listings ADD COLUMN image_filename TEXT NOT NULL DEFAULT ''"
+        )
+
+    order_columns = {
+        column[1]
+        for column in connection.execute("PRAGMA table_info(orders)")
+    }
+    if "order_status" not in order_columns:
+        connection.execute(
+            "ALTER TABLE orders ADD COLUMN order_status TEXT NOT NULL DEFAULT 'Placed'"
+        )
+    connection.commit()
+
+
+@app.context_processor
+def inject_marketplace_notice():
+    if session.get("username") != "amanmishra":
+        return {}
+
+    connection = sqlite3.connect("database.db")
+    ensure_marketplace_schema(connection)
+    pending_count = connection.execute(
+        "SELECT COUNT(*) FROM listings WHERE approval_status = 'Pending'"
+    ).fetchone()[0]
+    connection.close()
+    return {"pending_listing_count": pending_count}
 
 
 # ============================================================
@@ -226,6 +298,7 @@ def save_address(
     pincode
 ):
     conn = sqlite3.connect("database.db")
+    ensure_marketplace_schema(conn)
     cursor = conn.cursor()
 
     cursor.execute(
@@ -277,6 +350,7 @@ def save_address(
 
 def get_saved_address(username):
     conn = sqlite3.connect("database.db")
+    ensure_marketplace_schema(conn)
     cursor = conn.cursor()
 
     cursor.execute(
@@ -333,7 +407,7 @@ def home():
         for name in plant_names
     ]
 
-    farmer_image = get_plant_image("indian farmer field")
+    farmer_image = "/static/images/dashboard-foliage.jpg"
 
     weather = get_weather()
 
@@ -341,6 +415,7 @@ def home():
 
     if "username" in session:
         conn = sqlite3.connect("database.db")
+        ensure_marketplace_schema(conn)
         cursor = conn.cursor()
 
         cursor.execute(
@@ -458,6 +533,8 @@ def login():
         conn.close()
 
         if user and check_password_hash(user[2], password):
+            if session.get("username") != username:
+                session.pop("latest_diagnosis", None)
             session["username"] = username
             return redirect("/")
 
@@ -477,6 +554,7 @@ def login():
 @app.route("/logout")
 def logout():
     session.pop("username", None)
+    session.pop("latest_diagnosis", None)
     return redirect("/")
 
 
@@ -535,6 +613,15 @@ def result():
         confidence * 100,
         2
     )
+
+    session["latest_diagnosis"] = {
+        "username": session["username"],
+        "filename": filename,
+        "condition": condition,
+        "confidence": confidence_percent,
+        "fertilizer": info["fertilizer"],
+        "watering": info["watering"]
+    }
 
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
@@ -625,6 +712,7 @@ def admin():
         return redirect("/login")
 
     conn = sqlite3.connect("database.db")
+    ensure_marketplace_schema(conn)
     cursor = conn.cursor()
 
     cursor.execute(
@@ -674,6 +762,18 @@ def admin():
 
     recent_scans = cursor.fetchall()
 
+    cursor.execute(
+        """
+        SELECT id, seller_username, plant_name, price, quantity,
+               category, description, location, delivery,
+               date_listed, image_filename
+        FROM listings
+        WHERE approval_status = 'Pending'
+        ORDER BY id ASC
+        """
+    )
+    pending_listings = cursor.fetchall()
+
     conn.close()
 
     return render_template(
@@ -682,53 +782,33 @@ def admin():
         total_scans=total_scans,
         healthy_count=healthy_count,
         issue_count=issue_count,
-        recent_scans=recent_scans
+        recent_scans=recent_scans,
+        pending_listings=pending_listings
     )
 
 
-# ============================================================
-# SOIL ANALYSIS
-# ============================================================
-
-@app.route("/soil", methods=["GET", "POST"])
-def soil():
-    if "username" not in session:
+@app.route("/admin/listings/<int:listing_id>/<decision>", methods=["POST"])
+def review_listing(listing_id, decision):
+    if session.get("username") != "amanmishra":
         return redirect("/login")
+    if decision not in {"approve", "reject"}:
+        return redirect("/admin")
 
-    recommendations_result = None
-    disclaimer = None
-
-    if request.method == "POST":
-        soil_type = request.form["soil_type"]
-        ph = float(request.form["ph"])
-        nitrogen = float(request.form["nitrogen"])
-        phosphorus = float(request.form["phosphorus"])
-        potassium = float(request.form["potassium"])
-        moisture = float(request.form["moisture"])
-        organic_matter = float(
-            request.form["organic_matter"]
-        )
-
-        recommendations_result, disclaimer = analyze_soil(
-            soil_type,
-            ph,
-            nitrogen,
-            phosphorus,
-            potassium,
-            moisture,
-            organic_matter
-        )
-
-    bg_image = get_plant_image(
-        "soil field farmland"
+    conn = sqlite3.connect("database.db")
+    ensure_marketplace_schema(conn)
+    approval_status = "Approved" if decision == "approve" else "Rejected"
+    conn.execute(
+        """
+        UPDATE listings
+        SET approval_status = ?
+        WHERE id = ?
+        AND approval_status = 'Pending'
+        """,
+        (approval_status, listing_id)
     )
-
-    return render_template(
-        "soil.html",
-        recommendations=recommendations_result,
-        disclaimer=disclaimer,
-        bg_image=bg_image
-    )
+    conn.commit()
+    conn.close()
+    return redirect("/admin")
 
 
 # ============================================================
@@ -737,9 +817,6 @@ def soil():
 
 @app.route("/store")
 def store():
-    if "username" not in session:
-        return redirect("/login")
-
     plants_with_images = []
 
     for plant in plants_data:
@@ -756,6 +833,7 @@ def store():
         )
 
     conn = sqlite3.connect("database.db")
+    ensure_marketplace_schema(conn)
     cursor = conn.cursor()
 
     cursor.execute(
@@ -768,9 +846,11 @@ def store():
             category,
             description,
             seller_username,
-            status
+            status,
+            image_filename
         FROM listings
         WHERE status = 'Available'
+        AND approval_status = 'Approved'
         AND quantity > 0
         """
     )
@@ -792,7 +872,11 @@ def store():
                 "seller": listing[6],
                 "rating": 4.5,
                 "maintenance": "Medium",
-                "image": get_plant_image(listing[1]),
+                "image": (
+                    "/static/uploads/listings/" + listing[8]
+                    if listing[8]
+                    else get_plant_image(listing[1])
+                ),
                 "is_user_listing": True
             }
         )
@@ -813,21 +897,53 @@ def store():
 # ADD TO CART
 # ============================================================
 
-@app.route("/cart/add/<int:plant_id>")
+@app.route("/cart/add/<plant_id>")
 def add_to_cart(plant_id):
     if "username" not in session:
         return redirect("/login")
+
+    if str(plant_id).startswith("user_"):
+        try:
+            listing_id = int(str(plant_id).replace("user_", "", 1))
+        except ValueError:
+            return redirect("/store")
+
+        conn = sqlite3.connect("database.db")
+        ensure_marketplace_schema(conn)
+        listing = conn.execute(
+            """
+            SELECT seller_username
+            FROM listings
+            WHERE id = ?
+            AND approval_status = 'Approved'
+            AND status = 'Available'
+            AND quantity > 0
+            """,
+            (listing_id,)
+        ).fetchone()
+        conn.close()
+        if not listing or listing[0] == session["username"]:
+            return redirect("/store")
+        cart_id = "user_" + str(listing_id)
+    else:
+        try:
+            builtin_id = int(plant_id)
+        except ValueError:
+            return redirect("/store")
+        if not any(plant["id"] == builtin_id for plant in plants_data):
+            return redirect("/store")
+        cart_id = builtin_id
 
     if "cart" not in session:
         session["cart"] = []
 
     cart = session["cart"]
-
-    cart.append(plant_id)
+    if cart_id not in cart:
+        cart.append(cart_id)
 
     session["cart"] = cart
 
-    return redirect("/store")
+    return redirect("/cart")
 
 
 # ============================================================
@@ -857,18 +973,47 @@ def remove_from_cart(item_id):
 # ADD TO WISHLIST
 # ============================================================
 
-@app.route("/wishlist/add/<int:plant_id>")
+@app.route("/wishlist/add/<plant_id>")
 def add_to_wishlist(plant_id):
     if "username" not in session:
         return redirect("/login")
+
+    if str(plant_id).startswith("user_"):
+        try:
+            listing_id = int(str(plant_id).replace("user_", "", 1))
+        except ValueError:
+            return redirect("/store")
+        conn = sqlite3.connect("database.db")
+        ensure_marketplace_schema(conn)
+        listing = conn.execute(
+            """
+            SELECT id FROM listings
+            WHERE id = ?
+            AND approval_status = 'Approved'
+            AND status = 'Available'
+            AND quantity > 0
+            """,
+            (listing_id,)
+        ).fetchone()
+        conn.close()
+        if not listing:
+            return redirect("/store")
+        wishlist_id = "user_" + str(listing_id)
+    else:
+        try:
+            wishlist_id = int(plant_id)
+        except ValueError:
+            return redirect("/store")
+        if not any(plant["id"] == wishlist_id for plant in plants_data):
+            return redirect("/store")
 
     if "wishlist" not in session:
         session["wishlist"] = []
 
     wishlist = session["wishlist"]
 
-    if plant_id not in wishlist:
-        wishlist.append(plant_id)
+    if wishlist_id not in wishlist:
+        wishlist.append(wishlist_id)
 
     session["wishlist"] = wishlist
 
@@ -907,6 +1052,9 @@ def view_cart():
                     price
                 FROM listings
                 WHERE id = ?
+                AND approval_status = 'Approved'
+                AND status = 'Available'
+                AND quantity > 0
                 """,
                 (listing_id,)
             )
@@ -958,103 +1106,93 @@ def cart_checkout():
     if "username" not in session:
         return redirect("/login")
 
-    selected_ids = request.form.getlist(
-        "selected_items"
-    )
-
-    buyer_name = request.form["buyer_name"]
-    phone = request.form["phone"]
-    address_line1 = request.form["address_line1"]
-    address_line2 = request.form["address_line2"]
-    landmark = request.form.get("landmark", "")
-    city = request.form["city"]
-    state = request.form["state"]
-    pincode = request.form["pincode"]
-
-    address = f"{address_line1}, {address_line2}"
-
-    if landmark:
-        address += f" (Near {landmark})"
-
-    address += (
-        f", {city}, {state} - {pincode}"
-    )
-
-    save_address(
-        session["username"],
-        buyer_name,
-        phone,
-        address_line1,
-        address_line2,
-        landmark,
-        city,
-        state,
-        pincode
-    )
-
+    selected_ids = list(dict.fromkeys(request.form.getlist("selected_items")))
     cart_ids = session.get("cart", [])
-
-    ordered_plants = []
-
-    for cid in selected_ids:
-
-        if cid.startswith("user_"):
-
-            listing_id = int(
-                cid.replace("user_", "")
-            )
-
-            conn = sqlite3.connect("database.db")
-            cursor = conn.cursor()
-
-            cursor.execute(
-                """
-                SELECT
-                    plant_name,
-                    price
-                FROM listings
-                WHERE id = ?
-                """,
-                (listing_id,)
-            )
-
-            row = cursor.fetchone()
-
-            conn.close()
-
-            if row:
-                ordered_plants.append(
-                    {
-                        "name": row[0],
-                        "price": row[1]
-                    }
-                )
-
-        else:
-            plant = next(
-                (
-                    p
-                    for p in plants_data
-                    if p["id"] == int(cid)
-                ),
-                None
-            )
-
-            if plant:
-                ordered_plants.append(
-                    {
-                        "name": plant["name"],
-                        "price": plant["price"]
-                    }
-                )
+    cart_id_strings = {str(cart_id) for cart_id in cart_ids}
+    if not selected_ids or any(item_id not in cart_id_strings for item_id in selected_ids):
+        return redirect("/cart?error=Select%20available%20items%20from%20your%20cart")
 
     conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
+    ensure_marketplace_schema(conn)
+    ordered_plants = []
+    listing_updates = []
+    invalid_item = False
+
+    for cid in selected_ids:
+        if cid.startswith("user_"):
+            try:
+                listing_id = int(cid.replace("user_", "", 1))
+            except ValueError:
+                invalid_item = True
+                break
+
+            row = conn.execute(
+                """
+                SELECT plant_name, price, seller_username
+                FROM listings
+                WHERE id = ?
+                AND approval_status = 'Approved'
+                AND status = 'Available'
+                AND quantity > 0
+                """,
+                (listing_id,)
+            ).fetchone()
+            if not row or row[2] == session["username"]:
+                invalid_item = True
+                break
+            ordered_plants.append({"name": row[0], "price": row[1]})
+            listing_updates.append(listing_id)
+
+        else:
+            try:
+                builtin_id = int(cid)
+            except ValueError:
+                invalid_item = True
+                break
+            plant = next((item for item in plants_data if item["id"] == builtin_id), None)
+            if not plant:
+                invalid_item = True
+                break
+            ordered_plants.append({"name": plant["name"], "price": plant["price"]})
+
+    if invalid_item:
+        conn.close()
+        return redirect("/cart?error=An%20item%20is%20no%20longer%20available")
+
+    buyer_name = request.form["buyer_name"].strip()
+    phone = request.form["phone"].strip()
+    address_line1 = request.form["address_line1"].strip()
+    address_line2 = request.form["address_line2"].strip()
+    landmark = request.form.get("landmark", "").strip()
+    city = request.form["city"].strip()
+    state = request.form["state"].strip()
+    pincode = request.form["pincode"].strip()
+    address = f"{address_line1}, {address_line2}"
+    if landmark:
+        address += f" (Near {landmark})"
+    address += f", {city}, {state} - {pincode}"
 
     total = 0
+    for listing_id in listing_updates:
+        updated = conn.execute(
+            """
+            UPDATE listings
+            SET quantity = quantity - 1,
+                status = CASE WHEN quantity <= 1 THEN 'Out of Stock' ELSE status END
+            WHERE id = ?
+            AND approval_status = 'Approved'
+            AND status = 'Available'
+            AND quantity > 0
+            """,
+            (listing_id,)
+        )
+        if updated.rowcount != 1:
+            conn.rollback()
+            conn.close()
+            return redirect("/cart?error=An%20item%20just%20sold%20out")
 
-    for p in ordered_plants:
-        cursor.execute(
+    for plant in ordered_plants:
+        conn.execute(
             """
             INSERT INTO orders
             (
@@ -1070,8 +1208,8 @@ def cart_checkout():
             """,
             (
                 session["username"],
-                p["name"],
-                p["price"],
+                plant["name"],
+                plant["price"],
                 buyer_name,
                 phone,
                 address,
@@ -1081,10 +1219,15 @@ def cart_checkout():
             )
         )
 
-        total += p["price"]
+        total += plant["price"]
 
     conn.commit()
     conn.close()
+
+    save_address(
+        session["username"], buyer_name, phone, address_line1,
+        address_line2, landmark, city, state, pincode
+    )
 
     remaining_cart = [
         cid
@@ -1135,11 +1278,16 @@ def checkout(plant_id):
                 id,
                 plant_name,
                 price,
-                quantity
+                quantity,
+                seller_username
             FROM listings
             WHERE id = ?
+            AND approval_status = 'Approved'
+            AND status = 'Available'
+            AND quantity > 0
+            AND seller_username != ?
             """,
-            (listing_id,)
+            (listing_id, session["username"])
         )
 
         row = cursor.fetchone()
@@ -1196,23 +1344,14 @@ def checkout(plant_id):
             f", {city}, {state} - {pincode}"
         )
 
-        order_qty = int(
-            request.form["order_qty"]
-        )
+        try:
+            order_qty = int(request.form["order_qty"])
+        except (TypeError, ValueError):
+            order_qty = 0
 
-        save_address(
-            session["username"],
-            buyer_name,
-            phone,
-            address_line1,
-            address_line2,
-            landmark,
-            city,
-            state,
-            pincode
-        )
-
-        if order_qty > available_qty:
+        if order_qty < 1:
+            error = "Enter a quantity of at least one."
+        elif order_qty > available_qty:
 
             error = (
                 f"Only {available_qty} unit(s) available. "
@@ -1253,24 +1392,40 @@ def checkout(plant_id):
 
             if is_user_listing:
 
-                new_qty = (
-                    available_qty - order_qty
-                )
-
-                cursor.execute(
+                updated = cursor.execute(
                     """
                     UPDATE listings
-                    SET quantity = ?
+                    SET quantity = quantity - ?,
+                        status = CASE WHEN quantity <= ? THEN 'Out of Stock' ELSE status END
                     WHERE id = ?
+                    AND approval_status = 'Approved'
+                    AND status = 'Available'
+                    AND quantity >= ?
                     """,
                     (
-                        new_qty,
-                        listing_id
+                        order_qty,
+                        order_qty,
+                        listing_id,
+                        order_qty
                     )
                 )
+                if updated.rowcount != 1:
+                    conn.rollback()
+                    conn.close()
+                    error = "This plant is no longer available in that quantity."
+                    saved = get_saved_address(session["username"])
+                    return render_template(
+                        "checkout.html", plant=plant,
+                        available_qty=available_qty, error=error, saved=saved
+                    )
 
             conn.commit()
             conn.close()
+
+            save_address(
+                session["username"], buyer_name, phone, address_line1,
+                address_line2, landmark, city, state, pincode
+            )
 
             return render_template(
                 "order_confirmation.html",
@@ -1302,58 +1457,64 @@ def sell():
         return redirect("/login")
 
     message = ""
+    conn = sqlite3.connect("database.db")
+    ensure_marketplace_schema(conn)
+    conn.close()
 
     if request.method == "POST":
+        plant_name = request.form.get("plant_name", "").strip()
+        category = request.form.get("category", "")
+        try:
+            price = float(request.form.get("price", ""))
+            quantity = int(request.form.get("quantity", ""))
+        except (TypeError, ValueError):
+            price = 0
+            quantity = 0
 
-        plant_name = request.form["plant_name"]
-        price = float(request.form["price"])
-        quantity = int(request.form["quantity"])
-        category = request.form["category"]
-        description = request.form["description"]
-        location = request.form["location"]
-        delivery = request.form["delivery"]
+        if not plant_name or price <= 0 or quantity <= 0:
+            message = "Enter a plant name, a price above zero, and a quantity above zero."
+        elif category not in categories:
+            message = "Choose a valid plant category."
+        else:
+            photo = request.files.get("plant_photo")
+            image_filename = ""
+            if photo and photo.filename:
+                safe_name = secure_filename(photo.filename)
+                extension = os.path.splitext(safe_name)[1].lower()
+                if extension not in {".jpg", ".jpeg", ".png", ".webp", ".avif"}:
+                    message = "Use a JPG, PNG, WEBP, or AVIF plant photo."
+                else:
+                    image_filename = uuid4().hex + extension
+                    upload_path = os.path.join(
+                        app.config["UPLOAD_FOLDER"], "listings"
+                    )
+                    os.makedirs(upload_path, exist_ok=True)
+                    photo.save(os.path.join(upload_path, image_filename))
 
-        conn = sqlite3.connect("database.db")
-        cursor = conn.cursor()
-
-        cursor.execute(
-            """
-            INSERT INTO listings
-            (
-                seller_username,
-                plant_name,
-                price,
-                quantity,
-                category,
-                description,
-                location,
-                delivery,
-                date_listed
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                session["username"],
-                plant_name,
-                price,
-                quantity,
-                category,
-                description,
-                location,
-                delivery,
-                datetime.now().strftime(
-                    "%d-%m-%Y %H:%M"
+            if not message:
+                conn = sqlite3.connect("database.db")
+                ensure_marketplace_schema(conn)
+                conn.execute(
+                    """
+                    INSERT INTO listings
+                    (
+                        seller_username, plant_name, price, quantity,
+                        category, description, location, delivery,
+                        date_listed, status, approval_status, image_filename
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Available', 'Pending', ?)
+                    """,
+                    (
+                        session["username"], plant_name, price, quantity,
+                        category, request.form.get("description", "").strip(),
+                        request.form.get("location", "").strip(),
+                        request.form.get("delivery", "Home Delivery"),
+                        datetime.now().strftime("%d-%m-%Y %H:%M"), image_filename
+                    )
                 )
-            )
-        )
-
-        conn.commit()
-        conn.close()
-
-        message = (
-            "Thank you! Your plant listing has "
-            "been submitted successfully."
-        )
+                conn.commit()
+                conn.close()
+                message = "Listing submitted for admin review. It will appear in GreenMarket after approval."
 
     bg_image = get_plant_image(
         "plant nursery garden shop"
@@ -1376,6 +1537,7 @@ def my_listings():
         return redirect("/login")
 
     conn = sqlite3.connect("database.db")
+    ensure_marketplace_schema(conn)
     cursor = conn.cursor()
 
     cursor.execute(
@@ -1389,7 +1551,9 @@ def my_listings():
             location,
             delivery,
             date_listed,
-            status
+            status,
+            approval_status,
+            image_filename
         FROM listings
         WHERE seller_username = ?
         ORDER BY id DESC
@@ -1417,11 +1581,12 @@ def toggle_listing_status(listing_id):
         return redirect("/login")
 
     conn = sqlite3.connect("database.db")
+    ensure_marketplace_schema(conn)
     cursor = conn.cursor()
 
     cursor.execute(
         """
-        SELECT status
+        SELECT status, approval_status
         FROM listings
         WHERE id = ?
         AND seller_username = ?
@@ -1434,7 +1599,7 @@ def toggle_listing_status(listing_id):
 
     row = cursor.fetchone()
 
-    if row:
+    if row and row[1] == "Approved":
 
         new_status = (
             "Out of Stock"
@@ -1476,12 +1641,14 @@ def my_orders():
     cursor.execute(
         """
         SELECT
+            id,
             plant_name,
             price,
             buyer_name,
             phone,
             address,
-            order_date
+            order_date,
+            order_status
         FROM orders
         WHERE username = ?
         ORDER BY id DESC
@@ -1503,6 +1670,18 @@ def my_orders():
 # AI CHAT
 # ============================================================
 
+@app.route("/assistant")
+def assistant():
+    diagnosis = session.get("latest_diagnosis")
+    if diagnosis and diagnosis.get("username") != session.get("username"):
+        diagnosis = None
+
+    return render_template(
+        "assistant.html",
+        diagnosis=diagnosis
+    )
+
+
 @app.route("/ai-chat", methods=["POST"])
 def ai_chat():
     if "username" not in session:
@@ -1515,6 +1694,18 @@ def ai_chat():
         "question",
         ""
     )
+
+    if request.form.get("include_diagnosis") == "1":
+        diagnosis = session.get("latest_diagnosis")
+        if diagnosis and diagnosis.get("username") == session.get("username"):
+            question = (
+                "Use this recent plant diagnosis as context. "
+                f"Detected condition: {diagnosis['condition']}. "
+                f"Model confidence: {diagnosis['confidence']}%. "
+                f"Fertilizer recommendation: {diagnosis['fertilizer']}. "
+                f"Watering guidance: {diagnosis['watering']}. "
+                f"User's question: {question}"
+            )
 
     answer = get_answer(question)
 

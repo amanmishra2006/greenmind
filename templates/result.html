@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container">
+<div class="container diagnosis-report">
     <h1>🌿 Diagnosis Report</h1>
     <img src="{{ url_for('static', filename='uploads/' + filename) }}" width="250"><br><br>
 
@@ -13,6 +13,7 @@
     <h3>💧 Watering Guidance</h3>
     <p>{{ watering }}</p>
 
+    <a href="/assistant" class="btn diagnosis-assistant-link">Discuss this diagnosis with AI <span aria-hidden="true">→</span></a>
     <a href="/upload" class="btn">Analyze Another Plant</a>
 </div>
 {% endblock %}

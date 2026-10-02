@@ -6,24 +6,29 @@
     {% if listings %}
         {% for item in listings %}
         <div class="history-item">
+            {% if item[10] %}
+            <img src="{{ url_for('static', filename='uploads/listings/' + item[10]) }}" alt="{{ item[1] }}">
+            {% endif %}
             <div style="flex-grow:1;">
                 <p><strong>{{ item[1] }}</strong> — ₹{{ item[2] }}</p>
                 <p class="small-text">{{ item[4] }} | Qty: {{ item[3] }}</p>
                 <p class="small-text">📍 {{ item[5] }} | {{ item[6] }}</p>
                 <p class="small-text">Listed on: {{ item[7] }}</p>
-                <p style="margin-top:6px;">
-                    <span style="padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600;
-                        {% if item[8] == 'Available' %}
-                            background:#e2f3e6; color:#1b6b3f;
-                        {% else %}
-                            background:#fbebe3; color:#c0392b;
-                        {% endif %}">
-                        {{ item[8] }}
-                    </span>
+                <p class="listing-status-line">
+                    <span class="listing-status-badge listing-review-{{ item[9]|lower }}">Review: {{ item[9] }}</span>
+                    {% if item[9] == 'Approved' %}
+                    <span class="listing-status-badge listing-stock-{{ item[8]|lower|replace(' ', '-') }}">Stock: {{ item[8] }}</span>
+                    {% endif %}
                 </p>
+                {% if item[9] == 'Pending' %}
+                <p class="small-text">Your listing will appear in the store after admin approval.</p>
+                {% elif item[9] == 'Rejected' %}
+                <p class="small-text">This listing was not approved for the store.</p>
+                {% else %}
                 <a href="/listing/toggle-status/{{ item[0] }}" class="btn btn-small" style="margin-top:8px;">
                     {% if item[8] == 'Available' %}Mark as Out of Stock{% else %}Mark as Available{% endif %}
                 </a>
+                {% endif %}
             </div>
         </div>
         {% endfor %}

@@ -1,19 +1,149 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container">
-    <h1>🤖 Plant Care Assistant</h1>
-    <p>Ask me anything about tomato plant care!</p>
+<main class="assistant-page">
+    <header class="assistant-heading">
+        <p class="assistant-kicker">GREENMIND / FIELD DESK</p>
+        <h1>Plant care, in conversation.</h1>
+        <p>Get practical guidance for healthier plants, from first symptoms to everyday care.</p>
+    </header>
 
-    <form method="POST">
-        <input type="text" name="question" placeholder="e.g. How much water does my plant need?" required>
-        <button type="submit" class="btn">Ask</button>
-    </form>
+    {% if session.username %}
+    <div class="assistant-workspace">
+        <aside class="assistant-guide">
+            <p class="assistant-kicker">YOUR GROWING NOTES</p>
+            <h2>What are you noticing?</h2>
+            <p>Share the plant, what changed, and when you first noticed it. A little context leads to more useful advice.</p>
+            <div class="assistant-topics">
+                <h3>Good places to start</h3>
+                <button type="button" class="assistant-prompt" data-question="How often should I water my tomato plant?">Watering and light <span aria-hidden="true">↗</span></button>
+                <button type="button" class="assistant-prompt" data-question="What are common signs of nutrient deficiency in leaves?">Leaf symptoms <span aria-hidden="true">↗</span></button>
+                <button type="button" class="assistant-prompt" data-question="How can I improve soil drainage for vegetables?">Soil and nutrients <span aria-hidden="true">↗</span></button>
+            </div>
+            <p class="assistant-note">For severe or rapidly spreading damage, check with a local agricultural expert.</p>
+        </aside>
 
-    {% if answer %}
-    <div class="assistant-answer">
-        <p><strong>You asked:</strong> {{ question }}</p>
-        <p><strong>🌿 Assistant:</strong> {{ answer }}</p>
+        <section class="assistant-chat" aria-label="Plant care conversation">
+            <div class="assistant-chat-heading">
+                <div>
+                    <span class="assistant-live-dot" aria-hidden="true"></span>
+                    <span>Plant care assistant</span>
+                </div>
+                <span class="assistant-chat-caption">PRIVATE SESSION</span>
+            </div>
+            <div class="assistant-thread" id="assistantThread" aria-live="polite" aria-relevant="additions">
+                {% if diagnosis %}
+                <aside class="assistant-diagnosis-context">
+                    <div>
+                        <span class="assistant-speaker">LATEST DIAGNOSIS · {{ diagnosis.confidence }}% CONFIDENCE</span>
+                        <p><strong>{{ diagnosis.condition }}</strong></p>
+                        <p>Fertilizer: {{ diagnosis.fertilizer }}</p>
+                        <p>Watering: {{ diagnosis.watering }}</p>
+                    </div>
+                    <img src="{{ url_for('static', filename='uploads/' + diagnosis.filename) }}" alt="Plant from your latest diagnosis">
+                </aside>
+                {% endif %}
+                <article class="assistant-message assistant-message-ai">
+                    <span class="assistant-avatar" aria-hidden="true">G</span>
+                    <div>
+                        <span class="assistant-speaker">GREENMIND</span>
+                        <p>Hi {{ session.username }}. Tell me what you are growing and what you would like help with.</p>
+                    </div>
+                </article>
+            </div>
+            <form class="assistant-composer" id="assistantForm">
+                <label class="visually-hidden" for="assistantInput">Your plant care question</label>
+                <input id="assistantInput" type="text" maxlength="500" placeholder="Ask about a plant, symptom, or growing condition" autocomplete="off" required>
+                <button type="submit" aria-label="Send question"><span>Send</span><span aria-hidden="true">↑</span></button>
+            </form>
+            <p class="assistant-status" id="assistantStatus" role="status">Keep questions focused for the clearest guidance.</p>
+        </section>
     </div>
+    {% else %}
+    <section class="assistant-login">
+        <span class="assistant-avatar" aria-hidden="true">G</span>
+        <h2>Your plant care desk is ready.</h2>
+        <p>Sign in to ask questions and get tailored plant-care guidance.</p>
+        <a class="assistant-login-link" href="/login">Sign in to continue <span aria-hidden="true">→</span></a>
+    </section>
     {% endif %}
-</div>
+</main>
+
+{% if session.username %}
+<script>
+const assistantForm = document.getElementById("assistantForm");
+const assistantInput = document.getElementById("assistantInput");
+const assistantThread = document.getElementById("assistantThread");
+const assistantStatus = document.getElementById("assistantStatus");
+const assistantSend = assistantForm.querySelector("button[type='submit']");
+let assistantBusy = false;
+
+function addAssistantMessage(kind, text) {
+    const message = document.createElement("article");
+    message.className = `assistant-message assistant-message-${kind}`;
+    const content = document.createElement("div");
+    const speaker = document.createElement("span");
+    const paragraph = document.createElement("p");
+    speaker.className = "assistant-speaker";
+    speaker.textContent = kind === "ai" ? "GREENMIND" : "YOU";
+    paragraph.textContent = text;
+
+    if (kind === "ai") {
+        const avatar = document.createElement("span");
+        avatar.className = "assistant-avatar";
+        avatar.setAttribute("aria-hidden", "true");
+        avatar.textContent = "G";
+        message.append(avatar);
+    }
+
+    content.append(speaker, paragraph);
+    message.append(content);
+    assistantThread.append(message);
+    assistantThread.scrollTop = assistantThread.scrollHeight;
+}
+
+async function askAssistant(question) {
+    if (!question || assistantBusy) return;
+
+    assistantBusy = true;
+    assistantInput.disabled = true;
+    assistantSend.disabled = true;
+    assistantStatus.textContent = "Preparing a response...";
+    addAssistantMessage("user", question);
+
+    try {
+        const response = await fetch("/ai-chat", {
+            method: "POST",
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: new URLSearchParams({
+                question,
+                include_diagnosis: {{ '"1"' if diagnosis else '"0"' }}
+            })
+        });
+        const data = await response.json();
+        addAssistantMessage("ai", data.answer || "I couldn't prepare an answer just now. Please try again.");
+        assistantStatus.textContent = "Keep questions focused for the clearest guidance.";
+    } catch (error) {
+        addAssistantMessage("ai", "I couldn't reach the assistant just now. Please try again.");
+        assistantStatus.textContent = "Connection interrupted. Your question is still here.";
+    } finally {
+        assistantBusy = false;
+        assistantInput.disabled = false;
+        assistantSend.disabled = false;
+        assistantInput.focus();
+    }
+}
+
+assistantForm.addEventListener("submit", event => {
+    event.preventDefault();
+    const question = assistantInput.value.trim();
+    if (!question) return;
+    assistantInput.value = "";
+    askAssistant(question);
+});
+
+document.querySelectorAll(".assistant-prompt").forEach(button => {
+    button.addEventListener("click", () => askAssistant(button.dataset.question));
+});
+</script>
+{% endif %}
 {% endblock %}
